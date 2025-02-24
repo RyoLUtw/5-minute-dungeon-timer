@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>5 Minute Dungeon Modified Timer</title>
+  <style>
+    /* Basic styling */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.5s ease;
+    }
+    /* Encounter Timer Bar (Phase 2 Timer) */
+    .top-bar {
+      background-color: #333;
+      color: white;
+      text-align: center;
+      width: 90vw;
+      max-height: 10vh;
+      margin: 10px auto;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: clamp(1.5em, 5vw, 5vh);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    /* Recon Timer Bar (Phase 1 Timer) */
+    .recon-bar {
+      background-color: #555;
+      color: white;
+      text-align: center;
+      width: 90vw;
+      max-height: 10vh;
+      margin: 10px auto;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: clamp(1.5em, 5vw, 5vh);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .container {
+      margin-top: 20px;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+    }
+    .phase {
+      display: none;
+    }
+    .active {
+      display: block;
+    }
+    button {
+      font-size: 1.5em;
+      padding: 15px 20px;
+      margin: 10px;
+      cursor: pointer;
+    }
+    /* Settings Modal styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 300px;
+      text-align: left;  /* Left align everything */
+    }
+    .modal-close {
+      float: right;
+      cursor: pointer;
+      font-size: 20px;
+    }
+    /* Settings button as a normal element (not floating) */
+    #settingsButton {
+      float: right;
+      font-size: 1.5em;
+      padding: 15px 20px;
+      margin: 10px;
+    }
+    /* Capsule Toggle Switch styling */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 9vh;
+      height: 5vh;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 25px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: calc(5vh - 4px);
+      width: calc(5vh - 4px);
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+    .toggle-switch input:checked + .slider {
+      background-color: #2196F3;
+    }
+    .toggle-switch input:checked + .slider:before {
+      transform: translateX(calc(9vh - 5vh));
+    }
+    /* Larger input fields in modal */
+    input[type="number"] {
+      height: 2.5em;
+      font-size: 1em;
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Encounter Timer Bar (Phase 2 Timer) -->
+  <div class="top-bar" id="encounterTimerBar">
+    Encounter Timer: 05:00
+  </div>
+  <!-- Recon Timer Bar (Phase 1 Timer); hidden by default -->
+  <div class="recon-bar" id="reconTimerBar" style="display:none;">
+    Recon Timer: 00 sec
+  </div>
+  <!-- Penalty Warning message shown under the recon timer bar -->
+  <p id="penaltyWarning" style="text-align: center; color: red; font-size: 1.2em; display: none;"></p>
+  
+  <div class="container">
+    <!-- Start Game Button -->
+    <button id="startReconButton">Start Recon</button>
+    
+    <!-- Recon Phase (Phase 1) -->
+    <div id="phase1" class="phase">
+      <h1 id="encounterName"></h1>
+      <p id="phase1Instruction">Recon Phase: Identify the encounter displayed above.</p>
+      <button id="startEncounterButton">Start Encounter</button>
+      <br>
+      <button id="penaltyButton">Misidentified Encounter</button>
+      <button id="cancelPenaltyButton">Cancel Penalty</button>
+    </div>
+    
+    <!-- Encounter Phase (Phase 2) -->
+    <div id="phase2" class="phase">
+      <p id="phase2Instruction">Encounter Phase in progress. Timer is counting down.</p>
+      <button id="completeEncounterButton">Complete Encounter</button>
+    </div>
+    
+    <!-- Settings Button (normal element, not fixed) -->
+    <button id="settingsButton">Settings</button>
+  </div>
+  
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" id="closeModal">&times;</span>
+      <h2>Settings</h2>
+      <!-- Challenge Mode Toggle -->
+      <div style="display: flex; align-items: center; justify-content: center;">
+        <span style="margin-right: 10px; font-size:1em;">Challenge Mode</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="challengeModeToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <!-- Challenge Mode Settings: Only shown when toggle is enabled -->
+      <div id="challengeModeSettings" style="display: none; margin-top: 10px;">
+        <p style="font-size: 0.9em; margin: 5px 0;">
+          When enabled, a separate timer for the Recon Phase will start.
+          If it counts down to zero before starting the encounter, a penalty is applied (subtracting the penalty time from the current Encounter Timer).
+        </p>
+        <label for="phase1TimerInput">Recon Timer Length (seconds):</label>
+        <input type="number" id="phase1TimerInput" value="10" />
+      </div>
+      <br>
+      <!-- Penalty Time setting always visible -->
+      <label for="penaltyTimeInput">Penalty Time (seconds):</label>
+      <input type="number" id="penaltyTimeInput" value="10" />
+      <br><br>
+      <button id="saveSettingsButton">Save</button>
+    </div>
+  </div>
+  
+  <script>
+    // Timer and game logic
+    
+    // Encounter Timer (Phase 2) duration: 5 minutes (in seconds)
+    let timerDuration = 300;
+    let remainingTime = timerDuration;
+    let timerInterval = null;
+    
+    // Example encounters array
+    let encounters = [
+      "Goblin Ambush",
+      "Dragon's Lair",
+      "Haunted Forest",
+      "Bandit Raid",
+      "Underground Crypt"
+    ];
+    
+    // Default penalty time (in seconds)
+    let penaltyTime = 10;
+    
+    // Challenge Mode variables for Recon Phase timer
+    let challengeModeEnabled = false;
+    let challengePhase1Duration = 10; // Recon Phase timer length in seconds
+    let phase1ChallengeTimerRemaining = 0;
+    let phase1ChallengeInterval = null;
+    
+    // DOM Elements
+    const encounterTimerBar = document.getElementById("encounterTimerBar");
+    const reconTimerBar = document.getElementById("reconTimerBar");
+    const penaltyWarning = document.getElementById("penaltyWarning");
+    const phase1Div = document.getElementById("phase1");
+    const phase2Div = document.getElementById("phase2");
+    const encounterNameElem = document.getElementById("encounterName");
+    
+    const startReconButton = document.getElementById("startReconButton");
+    const startEncounterButton = document.getElementById("startEncounterButton");
+    const completeEncounterButton = document.getElementById("completeEncounterButton");
+    const penaltyButton = document.getElementById("penaltyButton");
+    const cancelPenaltyButton = document.getElementById("cancelPenaltyButton");
+    
+    const settingsButton = document.getElementById("settingsButton");
+    const settingsModal = document.getElementById("settingsModal");
+    const closeModal = document.getElementById("closeModal");
+    const saveSettingsButton = document.getElementById("saveSettingsButton");
+    const penaltyTimeInput = document.getElementById("penaltyTimeInput");
+    const phase1TimerInput = document.getElementById("phase1TimerInput");
+    const challengeModeToggle = document.getElementById("challengeModeToggle");
+    const challengeModeSettings = document.getElementById("challengeModeSettings");
+    
+    // Format seconds to mm:ss
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+    }
+    
+    // Update Encounter Timer display (top bar)
+    function updateEncounterTimerDisplay() {
+      encounterTimerBar.textContent = "Encounter Timer: " + formatTime(remainingTime);
+      if (remainingTime <= 0) {
+        document.body.style.backgroundColor = "red";
+      }
+    }
+    
+    // Update Recon Timer display (Recon Phase bar)
+    function updateReconTimerDisplay() {
+      reconTimerBar.textContent = "Recon Timer: " + phase1ChallengeTimerRemaining + " sec";
+    }
+    
+    // Start the Encounter Timer (Phase 2)
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (remainingTime > 0) {
+          remainingTime--;
+          updateEncounterTimerDisplay();
+          if (remainingTime <= 0) {
+            clearInterval(timerInterval);
+            alert("Time's up!");
+          }
+        }
+      }, 1000);
+    }
+    
+    // Stop the Encounter Timer
+    function stopTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+    }
+    
+    // Initialize Recon Phase (Phase 1)
+    function initReconPhase() {
+      stopTimer();
+      if (encounters.length > 0) {
+        const randomIndex = Math.floor(Math.random() * encounters.length);
+        const encounter = encounters.splice(randomIndex, 1)[0];
+        encounterNameElem.textContent = encounter;
+      } else {
+        encounterNameElem.textContent = "No more encounters!";
+      }
+      
+      // Hide any penalty warning
+      penaltyWarning.style.display = "none";
+      penaltyWarning.textContent = "";
+      
+      // If Challenge Mode is enabled, start the Recon Timer
+      if (challengeModeEnabled) {
+        phase1ChallengeTimerRemaining = challengePhase1Duration;
+        updateReconTimerDisplay();
+        reconTimerBar.style.display = "flex";
+        if (phase1ChallengeInterval) clearInterval(phase1ChallengeInterval);
+        phase1ChallengeInterval = setInterval(() => {
+          phase1ChallengeTimerRemaining--;
+          updateReconTimerDisplay();
+          if (phase1ChallengeTimerRemaining <= 0) {
+            clearInterval(phase1ChallengeInterval);
+            // Subtract penalty from the current Encounter Timer value
+            remainingTime = Math.max(0, remainingTime - penaltyTime);
+            updateEncounterTimerDisplay();
+            reconTimerBar.style.display = "none"; // Hide recon timer
+            penaltyWarning.textContent = "Time expired, penalty applied.";
+            penaltyWarning.style.display = "block";
+          }
+        }, 1000);
+      } else {
+        reconTimerBar.style.display = "none";
+      }
+    }
+    
+    // Transition to Encounter Phase (Phase 2)
+    function goToEncounterPhase() {
+      phase1Div.classList.remove("active");
+      phase2Div.classList.add("active");
+      startTimer();
+    }
+    
+    // Transition back to Recon Phase (Phase 1)
+    function completeEncounter() {
+      stopTimer();
+      phase2Div.classList.remove("active");
+      phase1Div.classList.add("active");
+      initReconPhase();
+    }
+    
+    // Apply penalty by subtracting time from Encounter Timer
+    function applyPenalty() {
+      remainingTime = Math.max(0, remainingTime - penaltyTime);
+      updateEncounterTimerDisplay();
+    }
+    
+    // Cancel penalty by adding back the penalty time to Encounter Timer
+    function cancelPenalty() {
+      remainingTime = remainingTime + penaltyTime;
+      if (remainingTime > timerDuration) {
+        remainingTime = timerDuration;
+      }
+      updateEncounterTimerDisplay();
+    }
+    
+    // Event listener for Start Recon button (starts Recon Phase)
+    startReconButton.addEventListener("click", () => {
+      startReconButton.style.display = "none";
+      phase1Div.classList.add("active");
+      initReconPhase();
+    });
+    
+    // Event listener for Start Encounter button (transitions from Recon to Encounter Phase)
+    startEncounterButton.addEventListener("click", () => {
+      if (challengeModeEnabled && phase1ChallengeInterval) {
+        clearInterval(phase1ChallengeInterval);
+        phase1ChallengeInterval = null;
+      }
+      // Hide the recon timer and any penalty warning when starting the encounter
+      reconTimerBar.style.display = "none";
+      penaltyWarning.style.display = "none";
+      goToEncounterPhase();
+    });
+    
+    // Event listener for Complete Encounter button (from Encounter Phase)
+    completeEncounterButton.addEventListener("click", completeEncounter);
+    
+    penaltyButton.addEventListener("click", applyPenalty);
+    cancelPenaltyButton.addEventListener("click", cancelPenalty);
+    
+    settingsButton.addEventListener("click", () => {
+      settingsModal.style.display = "block";
+    });
+    
+    closeModal.addEventListener("click", () => {
+      settingsModal.style.display = "none";
+    });
+    
+    saveSettingsButton.addEventListener("click", () => {
+      const newPenalty = parseInt(penaltyTimeInput.value);
+      if (!isNaN(newPenalty)) {
+        penaltyTime = newPenalty;
+      }
+      challengeModeEnabled = challengeModeToggle.checked;
+      if (challengeModeEnabled) {
+        const newPhase1Duration = parseInt(phase1TimerInput.value);
+        if (!isNaN(newPhase1Duration)) {
+          challengePhase1Duration = newPhase1Duration;
+        }
+      }
+      settingsModal.style.display = "none";
+    });
+    
+    // Toggle display of Challenge Mode settings based on the toggle switch
+    challengeModeToggle.addEventListener("change", () => {
+      if (challengeModeToggle.checked) {
+        challengeModeSettings.style.display = "block";
+      } else {
+        challengeModeSettings.style.display = "none";
+      }
+    });
+    
+    window.onbeforeunload = function() {
+      return "Warning: Resetting the timer!";
+    };
+    
+    updateEncounterTimerDisplay();
+  </script>
+</body>
+</html>
