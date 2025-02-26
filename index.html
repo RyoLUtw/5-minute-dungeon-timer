@@ -80,16 +80,23 @@
       padding: 20px;
       border: 1px solid #888;
       width: 300px;
-      text-align: left;  /* Left align everything */
+      text-align: left;
     }
     .modal-close {
       float: right;
       cursor: pointer;
       font-size: 20px;
     }
-    /* Settings button as a normal element (not floating) */
+    /* Settings button as a normal element (not fixed) */
     #settingsButton {
       float: right;
+      font-size: 1.5em;
+      padding: 15px 20px;
+      margin: 10px;
+    }
+    /* Pause/Resume button styling */
+    #pauseResumeButton {
+      float: left;
       font-size: 1.5em;
       padding: 15px 20px;
       margin: 10px;
@@ -174,6 +181,9 @@
       <button id="completeEncounterButton">Complete Encounter</button>
     </div>
     
+    <!-- Pause/Resume Button -->
+    <button id="pauseResumeButton">Pause</button>
+    
     <!-- Settings Button (normal element, not fixed) -->
     <button id="settingsButton">Settings</button>
   </div>
@@ -219,11 +229,18 @@
     
     // Example encounters array
     let encounters = [
-      "Goblin Ambush",
-      "Dragon's Lair",
-      "Haunted Forest",
-      "Bandit Raid",
-      "Underground Crypt"
+      "A Timber-wolf",
+      "Invisable Wall",
+      "Living Vines",
+      "Wall of Spikes",
+      "Collapsed Ceiling",
+      "A shortcut",
+      "A surprise dodgeball tournament",
+      "A suspicious looking crate",
+      "Goblin",
+      "Adorable Slime",
+      "A Cactus that wants a hug",
+      "Quicksand"
     ];
     
     // Default penalty time (in seconds)
@@ -234,6 +251,9 @@
     let challengePhase1Duration = 10; // Recon Phase timer length in seconds
     let phase1ChallengeTimerRemaining = 0;
     let phase1ChallengeInterval = null;
+    
+    // Pause state variable
+    let isPaused = false;
     
     // DOM Elements
     const encounterTimerBar = document.getElementById("encounterTimerBar");
@@ -249,6 +269,7 @@
     const penaltyButton = document.getElementById("penaltyButton");
     const cancelPenaltyButton = document.getElementById("cancelPenaltyButton");
     
+    const pauseResumeButton = document.getElementById("pauseResumeButton");
     const settingsButton = document.getElementById("settingsButton");
     const settingsModal = document.getElementById("settingsModal");
     const closeModal = document.getElementById("closeModal");
@@ -367,6 +388,50 @@
       updateEncounterTimerDisplay();
     }
     
+    // Pause current timer (Recon if in Phase 1 and Challenge Mode enabled; otherwise Encounter timer)
+    function pauseCurrentTimer() {
+      if (phase1Div.classList.contains("active") && challengeModeEnabled && phase1ChallengeInterval) {
+        clearInterval(phase1ChallengeInterval);
+        phase1ChallengeInterval = null;
+      } else if (phase2Div.classList.contains("active") && timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+    
+    // Resume current timer
+    function resumeCurrentTimer() {
+      if (phase1Div.classList.contains("active") && challengeModeEnabled) {
+        phase1ChallengeInterval = setInterval(() => {
+          phase1ChallengeTimerRemaining--;
+          updateReconTimerDisplay();
+          if (phase1ChallengeTimerRemaining <= 0) {
+            clearInterval(phase1ChallengeInterval);
+            remainingTime = Math.max(0, remainingTime - penaltyTime);
+            updateEncounterTimerDisplay();
+            reconTimerBar.style.display = "none";
+            penaltyWarning.textContent = "Time expired, penalty applied.";
+            penaltyWarning.style.display = "block";
+          }
+        }, 1000);
+      } else if (phase2Div.classList.contains("active")) {
+        startTimer();
+      }
+    }
+    
+    // Event listener for Pause/Resume button
+    pauseResumeButton.addEventListener("click", () => {
+      if (!isPaused) {
+        pauseCurrentTimer();
+        pauseResumeButton.textContent = "Resume";
+        isPaused = true;
+      } else {
+        resumeCurrentTimer();
+        pauseResumeButton.textContent = "Pause";
+        isPaused = false;
+      }
+    });
+    
     // Event listener for Start Recon button (starts Recon Phase)
     startReconButton.addEventListener("click", () => {
       startReconButton.style.display = "none";
@@ -380,7 +445,6 @@
         clearInterval(phase1ChallengeInterval);
         phase1ChallengeInterval = null;
       }
-      // Hide the recon timer and any penalty warning when starting the encounter
       reconTimerBar.style.display = "none";
       penaltyWarning.style.display = "none";
       goToEncounterPhase();
