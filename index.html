@@ -1,118 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>5 Minute Dungeon Modified Timer</title>
+  <title>5 Minute Dungeon - New Structure</title>
   <style>
-    /* Basic styling */
+    /* Global Styles */
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
       transition: background-color 0.5s ease;
     }
-    /* Encounter Timer Bar (Phase 2 Timer) */
+
+    /* Sidebar Styles (Floating Over Main Content) */
+    #sidebar {
+      width: 250px;
+      background-color: #333;
+      color: white;
+      position: fixed;
+      top: 0;
+      right: 0;
+      /* Sidebar on right */
+      bottom: 0;
+      padding: 20px;
+      z-index: 1000;
+      display: none;
+      /* collapsed by default */
+    }
+
+    #sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    #sidebar li {
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    #sidebar li:hover {
+      background-color: #444;
+    }
+
+    /* Expand Sidebar Button */
+    #expandSidebarButton {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      /* Positioned at top right */
+      z-index: 1100;
+      font-size: 1.5em;
+      background: #333;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      display: block;
+      /* visible initially when sidebar is collapsed */
+    }
+
+    /* Main Content Styles */
+    #main-content {
+      padding: 20px;
+      margin: 0;
+    }
+
+    .step-content {
+      display: none;
+    }
+
+    /* Top Bar (Game Step) */
     .top-bar {
       background-color: #333;
       color: white;
-      text-align: center;
-      width: 90vw;
-      max-height: 10vh;
-      margin: 10px auto;
       padding: 10px;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
-      font-size: clamp(1.5em, 5vw, 5vh);
-      overflow: hidden;
-      white-space: nowrap;
+      font-size: 2em;
     }
-    /* Recon Timer Bar (Phase 1 Timer) */
+
     .recon-bar {
       background-color: #555;
       color: white;
-      text-align: center;
-      width: 90vw;
-      max-height: 10vh;
-      margin: 10px auto;
       padding: 10px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: clamp(1.5em, 5vw, 5vh);
-      overflow: hidden;
-      white-space: nowrap;
-    }
-    .container {
-      margin-top: 20px;
-      padding: 20px;
-      text-align: center;
-      position: relative;
-    }
-    .phase {
+      font-size: 1.5em;
+      margin-top: 10px;
       display: none;
     }
-    .active {
+
+    /* Game Container */
+    #gameContent {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    button {
+      font-size: 1.2em;
+      padding: 10px 15px;
+      margin: 10px;
+      cursor: pointer;
+    }
+
+    /* Collapsible Encounter Sections */
+    .encounter-section {
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+    }
+
+    .section-header {
+      background-color: #eee;
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-content {
+      padding: 10px;
       display: block;
     }
-    button {
-      font-size: 1.5em;
-      padding: 15px 20px;
-      margin: 10px;
-      cursor: pointer;
-    }
-    /* Modal styling */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0,0,0,0.4);
-    }
-    .modal-content {
-      background-color: #fefefe;
-      margin: 10% auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 300px;
+
+    /* Settings Form */
+    .settings-form {
       text-align: left;
-      max-height: 80vh;
-      overflow-y: auto;
+      max-width: 400px;
     }
-    .modal-close {
-      float: right;
-      cursor: pointer;
-      font-size: 20px;
+
+    .settings-form div {
+      margin-bottom: 10px;
     }
-    /* Buttons for Settings & Encounter Selection */
-    #settingsButton, #chooseEncountersButton {
-      font-size: 1.5em;
-      padding: 15px 20px;
-      margin: 10px;
-    }
-    #pauseResumeButton {
-      float: left;
-      font-size: 1.5em;
-      padding: 15px 20px;
-      margin: 10px;
-    }
-    /* Capsule Toggle Switch styling */
+
     .toggle-switch {
       position: relative;
       display: inline-block;
-      width: 9vh;
-      height: 5vh;
+      width: 40px;
+      height: 24px;
     }
+
     .toggle-switch input {
       opacity: 0;
       width: 0;
       height: 0;
     }
+
     .slider {
       position: absolute;
       cursor: pointer;
@@ -122,162 +156,206 @@
       bottom: 0;
       background-color: #ccc;
       transition: 0.4s;
-      border-radius: 25px;
+      border-radius: 24px;
     }
+
     .slider:before {
       position: absolute;
       content: "";
-      height: calc(5vh - 4px);
-      width: calc(5vh - 4px);
+      height: 20px;
+      width: 20px;
       left: 2px;
       bottom: 2px;
       background-color: white;
       transition: 0.4s;
       border-radius: 50%;
     }
-    .toggle-switch input:checked + .slider {
+
+    .toggle-switch input:checked+.slider {
       background-color: #2196F3;
     }
-    .toggle-switch input:checked + .slider:before {
-      transform: translateX(calc(9vh - 5vh));
-    }
-    /* Larger input fields in modal */
-    input[type="number"], input[type="text"] {
-      height: 2.5em;
-      font-size: 1em;
-      padding: 5px;
-      margin: 5px 0;
-    }
-    /* Encounter Selection Modal: Tab structure */
-    .tab-container {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 10px;
-    }
-    .tab-button {
-      flex: 1;
-      padding: 10px;
-      cursor: pointer;
-      background: #eee;
-      border: 1px solid #ccc;
-      text-align: center;
-    }
-    .tab-button.active {
-      background: #ddd;
-      font-weight: bold;
+
+    .toggle-switch input:checked+.slider:before {
+      transform: translateX(16px);
     }
   </style>
 </head>
+
 <body>
-  <!-- Encounter Timer Bar (Phase 2 Timer) -->
-  <div class="top-bar" id="encounterTimerBar">
-    Encounter Timer: 05:00
+  <!-- Expand Sidebar Button (Top Right) -->
+  <button id="expandSidebarButton">☰</button>
+
+  <!-- Sidebar Navigation (Floating on Right) -->
+  <div id="sidebar">
+    <ul>
+      <li data-step="choose-encounter">Choose Encounter</li>
+      <li data-step="game-settings">Game Settings</li>
+      <li data-step="start-game">Start Game</li>
+    </ul>
   </div>
-  <!-- Recon Timer Bar (Phase 1 Timer); hidden by default -->
-  <div class="recon-bar" id="reconTimerBar" style="display:none;">
-    Recon Timer: 00 sec
-  </div>
-  <!-- Penalty Warning message shown under the recon timer bar -->
-  <p id="penaltyWarning" style="text-align: center; color: red; font-size: 1.2em; display: none;"></p>
-  
-  <div class="container">
-    <!-- Start Game Button -->
-    <button id="startReconButton">Start Recon</button>
-    
-    <!-- Encounter Selector Button -->
-    <button id="chooseEncountersButton">Choose Encounters</button>
-    
-    <!-- Recon Phase (Phase 1) -->
-    <div id="phase1" class="phase">
-      <h1 id="encounterName"></h1>
-      <p id="phase1Instruction">Recon Phase: Identify the encounter displayed above.</p>
-      <button id="startEncounterButton">Start Encounter</button>
-      <br>
-      <button id="penaltyButton">Misidentified Encounter</button>
-      <button id="cancelPenaltyButton">Cancel Penalty</button>
-    </div>
-    
-    <!-- Encounter Phase (Phase 2) -->
-    <div id="phase2" class="phase">
-      <p id="phase2Instruction">Encounter Phase in progress. Timer is counting down.</p>
-      <button id="completeEncounterButton">Complete Encounter</button>
-    </div>
-    
-    <!-- Pause/Resume Button -->
-    <button id="pauseResumeButton">Pause</button>
-    
-    <!-- Settings Button -->
-    <button id="settingsButton">Settings</button>
-  </div>
-  
-  <!-- Settings Modal -->
-  <div id="settingsModal" class="modal">
-    <div class="modal-content">
-      <span class="modal-close" id="closeModal">&times;</span>
-      <h2>Settings</h2>
-      <!-- Challenge Mode Toggle -->
-      <div style="display: flex; align-items: center; justify-content: center;">
-        <span style="margin-right: 10px; font-size:1em;">Challenge Mode</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="challengeModeToggle">
-          <span class="slider"></span>
-        </label>
+
+  <!-- Main Content Area -->
+  <div id="main-content">
+    <!-- Step 1: Choose Encounter -->
+    <div id="step-choose-encounter" class="step-content">
+      <h2>Choose Encounters</h2>
+      <!-- Single Preset Button for All Types -->
+      <button id="presetButton">Preset Selection</button>
+      <!-- Vertical Collapsible Sections for Each Encounter Type -->
+      <div class="encounter-section" data-type="event">
+        <div class="section-header">
+          <span>Event</span>
+          <button class="toggle-select-btn" data-type="event">Select All</button>
+        </div>
+        <div class="section-content"></div>
       </div>
-      <!-- Challenge Mode Settings -->
-      <div id="challengeModeSettings" style="display: none; margin-top: 10px;">
-        <p style="font-size: 0.9em; margin: 5px 0;">
-          When enabled, a separate timer for the Recon Phase will start.
-          If it counts down to zero before starting the encounter, a penalty is applied (subtracting the penalty time from the current Encounter Timer).
-        </p>
-        <label for="phase1TimerInput">Recon Timer Length (seconds):</label>
-        <input type="number" id="phase1TimerInput" value="10" />
+      <div class="encounter-section" data-type="mini-boss">
+        <div class="section-header">
+          <span>Mini-Boss</span>
+          <button class="toggle-select-btn" data-type="mini-boss">Select All</button>
+        </div>
+        <div class="section-content"></div>
       </div>
-      <br>
-      <!-- Penalty Time setting -->
-      <label for="penaltyTimeInput">Penalty Time (seconds):</label>
-      <input type="number" id="penaltyTimeInput" value="10" />
-      <br><br>
-      <button id="saveSettingsButton">Save</button>
-    </div>
-  </div>
-  
-  <!-- Encounter Selection Modal with Tab Structure -->
-  <div id="encounterModal" class="modal">
-    <div class="modal-content">
-      <span class="modal-close" id="closeEncounterModal">&times;</span>
-      <h2>Select Encounters</h2>
-      <!-- Tab Navigation -->
-      <div class="tab-container">
-        <button class="tab-button active" data-type="event">Event</button>
-        <button class="tab-button" data-type="mini-boss">Mini-Boss</button>
-        <button class="tab-button" data-type="monster">Monster</button>
-        <button class="tab-button" data-type="obstacle">Obstacle</button>
-        <button class="tab-button" data-type="person">Person</button>
+      <div class="encounter-section" data-type="monster">
+        <div class="section-header">
+          <span>Monster</span>
+          <button class="toggle-select-btn" data-type="monster">Select All</button>
+        </div>
+        <div class="section-content"></div>
       </div>
-      <!-- Search Field -->
+      <div class="encounter-section" data-type="obstacle">
+        <div class="section-header">
+          <span>Obstacle</span>
+          <button class="toggle-select-btn" data-type="obstacle">Select All</button>
+        </div>
+        <div class="section-content"></div>
+      </div>
+      <div class="encounter-section" data-type="person">
+        <div class="section-header">
+          <span>Person</span>
+          <button class="toggle-select-btn" data-type="person">Select All</button>
+        </div>
+        <div class="section-content"></div>
+      </div>
+      <!-- Global Search for Encounters -->
       <input type="text" id="encounterSearchInput" placeholder="Search encounters..." />
-      <!-- Container for Encounter List -->
-      <div id="encounterListContainer"></div>
       <br>
-      <button id="saveEncountersButton">Save Selection</button>
+      <button id="saveEncounterSelection">Save Selection &amp; Next</button>
+    </div>
+
+    <!-- Step 2: Game Settings -->
+    <div id="step-game-settings" class="step-content" style="display:none;">
+      <h2>Game Settings</h2>
+      <div class="settings-form">
+        <div>
+          <label>Challenge Mode</label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="challengeModeToggle">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div id="challengeModeSettings" style="display: none;">
+          <p>When enabled, a separate timer for the Recon Phase will start.
+            If it counts down to zero before starting the encounter, a penalty is applied.</p>
+          <label for="phase1TimerInput">Recon Timer Length (seconds):</label>
+          <input type="number" id="phase1TimerInput" value="10" />
+        </div>
+        <div>
+          <label for="penaltyTimeInput">Penalty Time (seconds):</label>
+          <input type="number" id="penaltyTimeInput" value="10" />
+        </div>
+        <button id="saveSettingsButton">Save Settings &amp; Next</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Start Game -->
+    <div id="step-start-game" class="step-content" style="display:none;">
+      <!-- Top Bar with Timer and Pause Icon Button -->
+      <div class="top-bar" id="encounterTimerBar">
+        <span>Encounter Timer: <span id="timerDisplay">05:00</span></span>
+        <button id="pauseResumeButton" style="background: none; border: none; color: white;">⏸</button>
+      </div>
+      <div class="recon-bar" id="reconTimerBar">
+        Recon Timer: <span id="reconTimerDisplay">00 sec</span>
+      </div>
+      <p id="penaltyWarning" style="text-align: center; color: red; font-size: 1.2em; display: none;"></p>
+      <!-- Game Content -->
+      <div id="gameContent">
+        <button id="startReconButton">Start Recon</button>
+        <div id="phase1" class="phase" style="display:none;">
+          <h1 id="encounterName"></h1>
+          <p id="phase1Instruction">Recon Phase: Identify the encounter displayed above.</p>
+          <button id="startEncounterButton">Start Encounter</button>
+          <br>
+          <button id="penaltyButton">Misidentified Encounter</button>
+          <button id="cancelPenaltyButton">Cancel Penalty</button>
+        </div>
+        <div id="phase2" class="phase" style="display:none;">
+          <p id="phase2Instruction">Encounter Phase in progress. Timer is counting down.</p>
+          <button id="completeEncounterButton">Complete Encounter</button>
+        </div>
+        <!-- New Round Button (Hidden Initially) -->
+        <button id="newRoundButton" style="display:none;">New Round</button>
+      </div>
     </div>
   </div>
-  
+
   <script>
-    // Timer and game logic
-    
-    // Encounter Timer (Phase 2) duration: 5 minutes (in seconds)
-    let timerDuration = 300;
-    let remainingTime = timerDuration;
-    let timerInterval = null;
-    
-    // Encounter list from PDF
+    /***********************
+     * Sidebar Navigation *
+     ***********************/
+    const sidebar = document.getElementById("sidebar");
+    const expandSidebarButton = document.getElementById("expandSidebarButton");
+    const stepContents = document.querySelectorAll(".step-content");
+    const sidebarItems = document.querySelectorAll("#sidebar li");
+
+    // Initially, show "Choose Encounter" and collapse sidebar.
+    document.getElementById("step-choose-encounter").style.display = "block";
+    expandSidebarButton.style.display = "block";
+
+    sidebarItems.forEach(item => {
+      item.addEventListener("click", () => {
+        const step = item.getAttribute("data-step");
+        switchStep(step);
+      });
+    });
+
+    function resetGameUI() {
+      document.getElementById("startReconButton").style.display = "block";
+      document.getElementById("phase1").style.display = "none";
+      document.getElementById("phase2").style.display = "none";
+      // Hide new round button initially
+      document.getElementById("newRoundButton").style.display = "none";
+    }
+
+    function switchStep(step) {
+      // Hide all steps
+      stepContents.forEach(content => content.style.display = "none");
+      // Show selected step
+      document.getElementById("step-" + step).style.display = "block";
+      // Collapse sidebar and show expand button
+      sidebar.style.display = "none";
+      expandSidebarButton.style.display = "block";
+      // If switching to Start Game step, reset the game UI to only show Start Recon
+      if (step === "start-game") {
+        resetGameUI();
+      }
+    }
+
+    expandSidebarButton.addEventListener("click", () => {
+      sidebar.style.display = "block";
+      expandSidebarButton.style.display = "none";
+    });
+
+    /***********************************
+     * Step 1: Choose Encounter Logic *
+     ***********************************/
     let encounterList = [
       { name: "AMBUSH!", type: "event" },
       { name: "A BOO-BOO", type: "event" },
       { name: "CONFUSION", type: "event" },
       { name: "DUNGEON ERROR IN YOUR FAVOR", type: "event" },
-      { name: "GIMME A HAND!", type: "event" },
+      { name: "GIMME A HARD!", type: "event" },
       { name: "LOCKED DOOR!", type: "event" },
       { name: "YET MORE SPIKES!", type: "event" },
       { name: "SUDDEN ILLNESS", type: "event" },
@@ -346,88 +424,178 @@
       { name: "THE NECROBOUNCER", type: "person" },
       { name: "A WARRIOR PRINCESS", type: "person" }
     ];
-    
-    // Global selection state: record checkbox state for each encounter (key: name-type)
+
+    // Global selection state (keys: "name-type"), all start unchecked.
     let selectedEncounterMap = {};
-    // Initially, mark all encounters as selected.
     encounterList.forEach(enc => {
       const key = enc.name + "-" + enc.type;
-      selectedEncounterMap[key] = true;
+      selectedEncounterMap[key] = false;
     });
-    
-    // These arrays will be used during gameplay
-    let selectedEncounters = [...encounterList];
-    let availableEncounters = [...selectedEncounters];
-    
-    // Default penalty time (in seconds)
+
+    // Render the collapsible sections in Step 1
+    function renderEncounterSections() {
+      const encounterTypes = ["event", "mini-boss", "monster", "obstacle", "person"];
+      const searchQuery = document.getElementById("encounterSearchInput").value.toLowerCase();
+      encounterTypes.forEach(type => {
+        const sectionContent = document.querySelector(`.encounter-section[data-type="${type}"] .section-content`);
+        // Filter encounters for type and search query, then sort alphabetically
+        const filtered = encounterList
+          .filter(enc => enc.type === type && enc.name.toLowerCase().includes(searchQuery))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        let html = "";
+        filtered.forEach(enc => {
+          const key = enc.name + "-" + enc.type;
+          const checked = selectedEncounterMap[key] ? "checked" : "";
+          html += `<div>
+                     <label>
+                       <input type="checkbox" class="encounterCheckbox" data-key="${key}" ${checked}>
+                       ${enc.name}
+                     </label>
+                   </div>`;
+        });
+        sectionContent.innerHTML = html;
+      });
+      // Attach listeners to checkboxes to update state and button labels
+      document.querySelectorAll(".encounterCheckbox").forEach(cb => {
+        cb.addEventListener("change", (e) => {
+          const key = e.target.getAttribute("data-key");
+          selectedEncounterMap[key] = e.target.checked;
+          // Update toggle button for this section
+          const section = e.target.closest('.encounter-section');
+          const type = section.getAttribute("data-type");
+          updateToggleButton(type);
+        });
+      });
+    }
+
+    // Update toggle button label for a given section type
+    function updateToggleButton(sectionType) {
+      const checkboxes = document.querySelectorAll(`.encounter-section[data-type="${sectionType}"] .encounterCheckbox`);
+      let allChecked = true;
+      checkboxes.forEach(cb => {
+        if (!cb.checked) allChecked = false;
+      });
+      const btn = document.querySelector(`.encounter-section[data-type="${sectionType}"] .toggle-select-btn`);
+      btn.textContent = allChecked ? "Select None" : "Select All";
+    }
+
+    // Toggle select all/none for a section
+    document.querySelectorAll(".toggle-select-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const type = btn.getAttribute("data-type");
+        const checkboxes = document.querySelectorAll(`.encounter-section[data-type="${type}"] .encounterCheckbox`);
+        let allChecked = true;
+        checkboxes.forEach(cb => {
+          if (!cb.checked) allChecked = false;
+        });
+        // New state: if all are checked, uncheck all; otherwise, check all.
+        const newState = !allChecked;
+        checkboxes.forEach(cb => {
+          cb.checked = newState;
+          const key = cb.getAttribute("data-key");
+          selectedEncounterMap[key] = newState;
+        });
+        btn.textContent = newState ? "Select None" : "Select All";
+      });
+    });
+
+    // Collapsible sections: toggle section-content visibility on header click (but not when clicking a button)
+    document.querySelectorAll(".section-header").forEach(header => {
+      header.addEventListener("click", (e) => {
+        if (e.target.tagName.toLowerCase() === "button") return;
+        const content = header.nextElementSibling;
+        content.style.display = (content.style.display === "none") ? "block" : "none";
+      });
+    });
+
+    document.getElementById("encounterSearchInput").addEventListener("input", renderEncounterSections);
+
+    // Preset button placeholder (single button for all types)
+    document.getElementById("presetButton").addEventListener("click", () => {
+      alert("Preset selection functionality goes here.");
+    });
+
+    // Save selection and move to Game Settings (update global selections)
+    document.getElementById("saveEncounterSelection").addEventListener("click", () => {
+      selectedEncountersGlobal = encounterList.filter(enc => {
+        const key = enc.name + "-" + enc.type;
+        return selectedEncounterMap[key];
+      });
+      availableEncounters = [...selectedEncountersGlobal];
+      switchStep("game-settings");
+    });
+
+    // Initial render for encounter sections
+    renderEncounterSections();
+
+    /**********************************
+     * Step 2: Game Settings Logic *
+     **********************************/
+    document.getElementById("challengeModeToggle").addEventListener("change", (e) => {
+      document.getElementById("challengeModeSettings").style.display = e.target.checked ? "block" : "none";
+    });
+
     let penaltyTime = 10;
-    
-    // Challenge Mode variables for Recon Phase timer
     let challengeModeEnabled = false;
-    let challengePhase1Duration = 10; // Recon Phase timer length in seconds
+    let challengePhase1Duration = 10;
+
+    document.getElementById("saveSettingsButton").addEventListener("click", () => {
+      let pVal = parseInt(document.getElementById("penaltyTimeInput").value);
+      if (!isNaN(pVal)) penaltyTime = pVal;
+      if (document.getElementById("challengeModeToggle").checked) {
+        let tVal = parseInt(document.getElementById("phase1TimerInput").value);
+        if (!isNaN(tVal)) challengePhase1Duration = tVal;
+        challengeModeEnabled = true;
+      } else {
+        challengeModeEnabled = false;
+      }
+      switchStep("start-game");
+    });
+
+    /******************************
+     * Step 3: Start Game Logic *
+     ******************************/
+    let timerDuration = 300;
+    let remainingTime = timerDuration;
+    let timerInterval = null;
     let phase1ChallengeTimerRemaining = 0;
     let phase1ChallengeInterval = null;
-    
-    // Pause state variable
     let isPaused = false;
-    
-    // DOM Elements for timers and phases
-    const encounterTimerBar = document.getElementById("encounterTimerBar");
+
+    const timerDisplay = document.getElementById("timerDisplay");
     const reconTimerBar = document.getElementById("reconTimerBar");
+    const reconTimerDisplay = document.getElementById("reconTimerDisplay");
     const penaltyWarning = document.getElementById("penaltyWarning");
-    const phase1Div = document.getElementById("phase1");
-    const phase2Div = document.getElementById("phase2");
     const encounterNameElem = document.getElementById("encounterName");
-    
     const startReconButton = document.getElementById("startReconButton");
     const startEncounterButton = document.getElementById("startEncounterButton");
     const completeEncounterButton = document.getElementById("completeEncounterButton");
     const penaltyButton = document.getElementById("penaltyButton");
     const cancelPenaltyButton = document.getElementById("cancelPenaltyButton");
-    
-    const pauseResumeButton = document.getElementById("pauseResumeButton");
-    const settingsButton = document.getElementById("settingsButton");
-    const settingsModal = document.getElementById("settingsModal");
-    const closeModal = document.getElementById("closeModal");
-    const saveSettingsButton = document.getElementById("saveSettingsButton");
-    const penaltyTimeInput = document.getElementById("penaltyTimeInput");
-    const phase1TimerInput = document.getElementById("phase1TimerInput");
-    const challengeModeToggle = document.getElementById("challengeModeToggle");
-    const challengeModeSettings = document.getElementById("challengeModeSettings");
-    
-    // DOM Elements for Encounter Selection Modal
-    const chooseEncountersButton = document.getElementById("chooseEncountersButton");
-    const encounterModal = document.getElementById("encounterModal");
-    const closeEncounterModal = document.getElementById("closeEncounterModal");
-    const encounterSearchInput = document.getElementById("encounterSearchInput");
-    const encounterListContainer = document.getElementById("encounterListContainer");
-    const saveEncountersButton = document.getElementById("saveEncountersButton");
-    const tabButtons = document.querySelectorAll(".tab-button");
-    
-    // Current tab filter; default to "event"
-    let currentTab = "event";
-    
-    // Format seconds to mm:ss
+
+    // For gameplay, use the encounters selected in Step 1.
+    let selectedEncountersGlobal = encounterList.filter(enc => {
+      const key = enc.name + "-" + enc.type;
+      return selectedEncounterMap[key];
+    });
+    let availableEncounters = [...selectedEncountersGlobal];
+
     function formatTime(seconds) {
       const m = Math.floor(seconds / 60);
       const s = seconds % 60;
       return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
     }
-    
-    // Update Encounter Timer display (top bar)
+
     function updateEncounterTimerDisplay() {
-      encounterTimerBar.textContent = "Encounter Timer: " + formatTime(remainingTime);
-      if (remainingTime <= 0) {
-        document.body.style.backgroundColor = "red";
-      }
+      timerDisplay.textContent = formatTime(remainingTime);
+      if (remainingTime <= 0) document.body.style.backgroundColor = "red";
     }
-    
-    // Update Recon Timer display (Recon Phase bar)
+
     function updateReconTimerDisplay() {
-      reconTimerBar.textContent = "Recon Timer: " + phase1ChallengeTimerRemaining + " sec";
+      reconTimerDisplay.textContent = phase1ChallengeTimerRemaining + " sec";
     }
-    
-    // Start the Encounter Timer (Phase 2)
+
     function startTimer() {
       if (timerInterval) clearInterval(timerInterval);
       timerInterval = setInterval(() => {
@@ -441,13 +609,11 @@
         }
       }, 1000);
     }
-    
-    // Stop the Encounter Timer
+
     function stopTimer() {
       if (timerInterval) clearInterval(timerInterval);
     }
-    
-    // Initialize Recon Phase (Phase 1)
+
     function initReconPhase() {
       stopTimer();
       if (availableEncounters.length > 0) {
@@ -457,10 +623,8 @@
       } else {
         encounterNameElem.textContent = "No more encounters!";
       }
-      
       penaltyWarning.style.display = "none";
       penaltyWarning.textContent = "";
-      
       if (challengeModeEnabled) {
         phase1ChallengeTimerRemaining = challengePhase1Duration;
         updateReconTimerDisplay();
@@ -482,51 +646,42 @@
         reconTimerBar.style.display = "none";
       }
     }
-    
-    // Transition to Encounter Phase (Phase 2)
+
     function goToEncounterPhase() {
-      phase1Div.classList.remove("active");
-      phase2Div.classList.add("active");
+      document.getElementById("phase1").style.display = "none";
+      document.getElementById("phase2").style.display = "block";
       startTimer();
     }
-    
-    // Transition back to Recon Phase (Phase 1)
+
     function completeEncounter() {
       stopTimer();
-      phase2Div.classList.remove("active");
-      phase1Div.classList.add("active");
+      document.getElementById("phase2").style.display = "none";
+      document.getElementById("phase1").style.display = "block";
       initReconPhase();
     }
-    
-    // Apply penalty by subtracting time from Encounter Timer
+
     function applyPenalty() {
       remainingTime = Math.max(0, remainingTime - penaltyTime);
       updateEncounterTimerDisplay();
     }
-    
-    // Cancel penalty by adding back the penalty time to Encounter Timer
+
     function cancelPenalty() {
-      remainingTime = remainingTime + penaltyTime;
-      if (remainingTime > timerDuration) {
-        remainingTime = timerDuration;
-      }
+      remainingTime = Math.min(timerDuration, remainingTime + penaltyTime);
       updateEncounterTimerDisplay();
     }
-    
-    // Pause current timer
+
     function pauseCurrentTimer() {
-      if (phase1Div.classList.contains("active") && challengeModeEnabled && phase1ChallengeInterval) {
+      if (document.getElementById("phase1").style.display === "block" && challengeModeEnabled && phase1ChallengeInterval) {
         clearInterval(phase1ChallengeInterval);
         phase1ChallengeInterval = null;
-      } else if (phase2Div.classList.contains("active") && timerInterval) {
+      } else if (document.getElementById("phase2").style.display === "block" && timerInterval) {
         clearInterval(timerInterval);
         timerInterval = null;
       }
     }
-    
-    // Resume current timer
+
     function resumeCurrentTimer() {
-      if (phase1Div.classList.contains("active") && challengeModeEnabled) {
+      if (document.getElementById("phase1").style.display === "block" && challengeModeEnabled) {
         phase1ChallengeInterval = setInterval(() => {
           phase1ChallengeTimerRemaining--;
           updateReconTimerDisplay();
@@ -539,33 +694,22 @@
             penaltyWarning.style.display = "block";
           }
         }, 1000);
-      } else if (phase2Div.classList.contains("active")) {
+      } else if (document.getElementById("phase2").style.display === "block") {
         startTimer();
       }
     }
-    
-    // Event listeners for Pause/Resume button
-    pauseResumeButton.addEventListener("click", () => {
-      if (!isPaused) {
-        pauseCurrentTimer();
-        pauseResumeButton.textContent = "Resume";
-        isPaused = true;
-      } else {
-        resumeCurrentTimer();
-        pauseResumeButton.textContent = "Pause";
-        isPaused = false;
-      }
-    });
-    
-    // Start Recon button
-    startReconButton.addEventListener("click", () => {
-      startReconButton.style.display = "none";
-      phase1Div.classList.add("active");
+
+    // Hide the expand button when Start Recon is clicked.
+    document.getElementById("startReconButton").addEventListener("click", () => {
+      document.getElementById("expandSidebarButton").style.display = "none";
+      document.getElementById("startReconButton").style.display = "none";
+      document.getElementById("phase1").style.display = "block";
       initReconPhase();
+      // Show the New Round button once the round has started.
+      document.getElementById("newRoundButton").style.display = "block";
     });
-    
-    // Start Encounter button
-    startEncounterButton.addEventListener("click", () => {
+
+    document.getElementById("startEncounterButton").addEventListener("click", () => {
       if (challengeModeEnabled && phase1ChallengeInterval) {
         clearInterval(phase1ChallengeInterval);
         phase1ChallengeInterval = null;
@@ -574,114 +718,46 @@
       penaltyWarning.style.display = "none";
       goToEncounterPhase();
     });
-    
-    // Complete Encounter button
-    completeEncounterButton.addEventListener("click", completeEncounter);
-    
+
+    document.getElementById("completeEncounterButton").addEventListener("click", completeEncounter);
     penaltyButton.addEventListener("click", applyPenalty);
     cancelPenaltyButton.addEventListener("click", cancelPenalty);
-    
-    settingsButton.addEventListener("click", () => {
-      settingsModal.style.display = "block";
-    });
-    
-    closeModal.addEventListener("click", () => {
-      settingsModal.style.display = "none";
-    });
-    
-    saveSettingsButton.addEventListener("click", () => {
-      const newPenalty = parseInt(penaltyTimeInput.value);
-      if (!isNaN(newPenalty)) {
-        penaltyTime = newPenalty;
+
+    // New Round Button: Reset game state and return to Choose Encounter step.
+    // New code:
+    document.getElementById("newRoundButton").addEventListener("click", () => {
+      if (confirm("New Round Starting! Are you sure?")) {
+        remainingTime = timerDuration;
+        clearInterval(timerInterval);
+        timerInterval = null;
+        phase1ChallengeTimerRemaining = challengeModeEnabled ? challengePhase1Duration : 0;
+        clearInterval(phase1ChallengeInterval);
+        phase1ChallengeInterval = null;
+        isPaused = false;
+        updateEncounterTimerDisplay();
+        switchStep("choose-encounter");
       }
-      challengeModeEnabled = challengeModeToggle.checked;
-      if (challengeModeEnabled) {
-        const newPhase1Duration = parseInt(phase1TimerInput.value);
-        if (!isNaN(newPhase1Duration)) {
-          challengePhase1Duration = newPhase1Duration;
-        }
+    });
+
+
+    // Add the pause/resume event listener for the pauseResumeButton.
+    document.getElementById("pauseResumeButton").addEventListener("click", () => {
+      console.log("Pause/Resume button clicked. isPaused =", isPaused);
+      if (!isPaused) {
+        pauseCurrentTimer();
+        document.getElementById("pauseResumeButton").textContent = "▶";
+        isPaused = true;
+        console.log("Timer paused.");
+      } else {
+        resumeCurrentTimer();
+        document.getElementById("pauseResumeButton").textContent = "⏸";
+        isPaused = false;
+        console.log("Timer resumed.");
       }
-      settingsModal.style.display = "none";
     });
-    
-    challengeModeToggle.addEventListener("change", () => {
-      challengeModeSettings.style.display = challengeModeToggle.checked ? "block" : "none";
-    });
-    
-    // -------------------------------
-    // Encounter Selection Modal (Tab Structure)
-    // -------------------------------
-    
-    // Function to update the encounter list display for the current tab and search query.
-    function updateEncounterListDisplay() {
-      const searchQuery = encounterSearchInput.value.toLowerCase();
-      const filteredEncounters = encounterList.filter(enc => {
-        return enc.type === currentTab && enc.name.toLowerCase().includes(searchQuery);
-      });
-      
-      let html = "";
-      filteredEncounters.forEach(enc => {
-        const key = enc.name + "-" + enc.type;
-        const isChecked = selectedEncounterMap[key] ? "checked" : "";
-        html += `<div>
-                   <label>
-                     <input type="checkbox" class="encounterSelect" data-key="${key}" ${isChecked}>
-                     ${enc.name}
-                   </label>
-                 </div>`;
-      });
-      encounterListContainer.innerHTML = html;
-      
-      // Add change listener for checkboxes to update the selection map.
-      document.querySelectorAll('.encounterSelect').forEach(cb => {
-        cb.addEventListener("change", (e) => {
-          const key = e.target.getAttribute("data-key");
-          selectedEncounterMap[key] = e.target.checked;
-        });
-      });
-    }
-    
-    // Tab button event listeners: switch currentTab and update active styling.
-    tabButtons.forEach(button => {
-      button.addEventListener("click", () => {
-        currentTab = button.getAttribute("data-type");
-        tabButtons.forEach(btn => btn.classList.remove("active"));
-        button.classList.add("active");
-        updateEncounterListDisplay();
-      });
-    });
-    
-    // Update list when search input changes.
-    encounterSearchInput.addEventListener("input", updateEncounterListDisplay);
-    
-    // Open the encounter modal
-    chooseEncountersButton.addEventListener("click", () => {
-      encounterModal.style.display = "block";
-      updateEncounterListDisplay();
-    });
-    
-    // Close encounter modal
-    closeEncounterModal.addEventListener("click", () => {
-      encounterModal.style.display = "none";
-    });
-    
-    // Save Selection button: update global selection arrays based on selectedEncounterMap.
-    saveEncountersButton.addEventListener("click", () => {
-      // Build new selection from the entire encounterList where the map is true.
-      selectedEncounters = encounterList.filter(enc => {
-        const key = enc.name + "-" + enc.type;
-        return selectedEncounterMap[key];
-      });
-      // Reset availableEncounters for gameplay.
-      availableEncounters = [...selectedEncounters];
-      encounterModal.style.display = "none";
-    });
-    
-    window.onbeforeunload = function() {
-      return "Warning: Resetting the timer!";
-    };
-    
+
     updateEncounterTimerDisplay();
   </script>
 </body>
+
 </html>
