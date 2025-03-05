@@ -4,16 +4,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>5 Minute Dungeon - New Structure</title>
+  <title>5 Minute Dungeon Timer</title>
   <style>
-    /* Global Styles */
+    /* Set a max-width for the viewport (common smartphone width, e.g., 414px) */
     body {
+      max-width: 414px;
+      margin: 0 auto;
+      padding: 0 10px;
       font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
       transition: background-color 0.5s ease;
     }
 
+    /* === Global Styles === */
     /* Sidebar Styles (Floating Over Main Content) */
     #sidebar {
       width: 250px;
@@ -58,7 +60,6 @@
       padding: 5px 10px;
       cursor: pointer;
       display: block;
-      /* visible initially when sidebar is collapsed */
     }
 
     /* Main Content Styles */
@@ -69,6 +70,7 @@
 
     .step-content {
       display: none;
+      padding: 15px;
     }
 
     /* Top Bar (Game Step) */
@@ -102,6 +104,8 @@
       padding: 10px 15px;
       margin: 10px;
       cursor: pointer;
+      border: none;
+      border-radius: 4px;
     }
 
     /* Collapsible Encounter Sections */
@@ -124,16 +128,24 @@
       display: block;
     }
 
-    /* Settings Form */
-    .settings-form {
-      text-align: left;
-      max-width: 400px;
-    }
-
-    .settings-form div {
+    /* Input elements */
+    input[type="text"],
+    input[type="number"] {
+      font-size: 1em;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 100%;
+      box-sizing: border-box;
       margin-bottom: 10px;
     }
 
+    input[type="checkbox"] {
+      transform: scale(1.1);
+      margin-right: 5px;
+    }
+
+    /* Toggle Switch Styles */
     .toggle-switch {
       position: relative;
       display: inline-block;
@@ -178,6 +190,210 @@
     .toggle-switch input:checked+.slider:before {
       transform: translateX(16px);
     }
+
+    /* === Step-Specific CSS === */
+
+    /* Step 1: Choose Encounter */
+    #step-choose-encounter h2 {
+      font-size: 2em;
+      font-weight: bold;
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    #step-choose-encounter .section-header {
+      background-color: #c6c6c6;
+      color:#000;
+      font-size: 1.2em;
+      padding: 8px;
+      border-radius: 4px;
+      margin-bottom: 5px;
+    }
+
+    #step-choose-encounter .section-content {
+      background-color: #f9f9f9;
+      padding: 8px;
+      border: 1px solid #bdc3c7;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+
+    /* For checkboxes in the Choose Encounter step */
+    #step-choose-encounter label {
+      display: block;
+      position: relative;
+      padding-left: 25px;
+      /* Adjust this value as needed */
+      margin-bottom: 10px;
+    }
+
+    #step-choose-encounter label input[type="checkbox"] {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    #step-choose-encounter button {
+      font-size: 0.7em;
+      padding: 8px 12px;
+      background-color: #ffffff;
+      color: #000;
+      border: solid 1px #000;
+      margin: 5px 0;
+    }
+
+    #step-choose-encounter #presetButton {
+      font-size: 1em;
+      padding: 8px 12px;
+      background-color: #3498db;
+      color: #fff;
+      margin: 5px 0;
+      width: 100%;
+    }
+
+    #step-choose-encounter #saveEncounterSelection {
+      font-size: 1em;
+      padding: 8px 12px;
+      background-color: #3498db;
+      color: #fff;
+      margin: 5px 0;
+      width: 100%;
+    }
+
+    /* Step 2: Game Settings */
+    #step-game-settings h2 {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #27ae60;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    #step-game-settings .settings-form label {
+      font-size: 1.1em;
+      color: #2d3436;
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    #step-game-settings .settings-form input[type="text"],
+    #step-game-settings .settings-form input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #dfe6e9;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+
+    #step-game-settings button {
+      font-size: 1.2em;
+      padding: 8px 12px;
+      background-color: #16a085;
+      color: #fff;
+      margin-top: 10px;
+    }
+
+    /* Step 3: Start Game */
+    #step-start-game .top-bar {
+      font-size: 1.5em;
+      background-color: #34495e;
+      padding: 10px;
+    }
+
+    #step-start-game .top-bar span {
+      font-weight: bold;
+    }
+
+    #step-start-game #gameContent button {
+      font-size: 1.2em;
+      padding: 10px;
+      background-color: #fff;
+      color: #2980b9;
+      border:solid 2px #2980b9;
+      margin-left:0;
+      margin-bottom: 10px;
+      width: 100%
+    }
+
+    #step-start-game #gameContent #startReconButton, #step-start-game #gameContent #startEncounterButton,
+    #step-start-game #gameContent #completeEncounterButton {
+      font-size: 1.2em;
+      padding: 10px;
+      background-color: #2980b9;
+      color: #fff;
+      margin-left:0;
+      margin-bottom: 10px;
+      width: 100%
+    }
+
+    #step-start-game .recon-bar {
+      font-size: 1.2em;
+      background-color: #7f8c8d;
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    /* If .top-bar is a flex container: */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Stack the title and value vertically */
+    .timer-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      /* optional, can be left if you prefer 
+  */
+      margin-left: 20px;
+    }
+
+    /* Style the title and value individually */
+    .timer-title {
+      display: block;
+      font-size: 0.8em;
+      /* Adjust as needed */
+      margin-bottom: 5px;
+    }
+
+    .timer-value {
+      display: block;
+      font-size: 2.5em;
+      /* Adjust as needed */
+    }
+
+
+    /* If .recon-bar uses display: flex, ensure it’s consistent or wrap them in a container. 
+   In many cases, you can style .recon-bar the same way as the top-bar. */
+
+.recon-bar {
+  display: none;
+  justify-content: center; /* or space-between, adjust as needed */
+  align-items: center;
+  /* other recon-bar styles here */
+}
+
+/* Stack the Recon Timer title and value */
+.recon-bar .timer-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* optional, can be left, etc. */
+}
+
+.recon-bar .timer-title {
+  display: block;
+  font-size: 1em;      /* Adjust as desired */
+  margin-bottom: 5px;
+}
+
+.recon-bar .timer-value {
+  display: block;
+  font-size: 1.5em;    /* Adjust as desired */
+}
+
   </style>
 </head>
 
@@ -201,6 +417,9 @@
       <h2>Choose Encounters</h2>
       <!-- Single Preset Button for All Types -->
       <button id="presetButton">Preset Selection</button>
+      <!-- Global Search for Encounters -->
+      <input type="text" id="encounterSearchInput" placeholder="Search encounters..." />
+      <br>
       <!-- Vertical Collapsible Sections for Each Encounter Type -->
       <div class="encounter-section" data-type="event">
         <div class="section-header">
@@ -237,9 +456,7 @@
         </div>
         <div class="section-content"></div>
       </div>
-      <!-- Global Search for Encounters -->
-      <input type="text" id="encounterSearchInput" placeholder="Search encounters..." />
-      <br>
+      
       <button id="saveEncounterSelection">Save Selection &amp; Next</button>
     </div>
 
@@ -271,13 +488,27 @@
     <!-- Step 3: Start Game -->
     <div id="step-start-game" class="step-content" style="display:none;">
       <!-- Top Bar with Timer and Pause Icon Button -->
+      <!-- HTML Example -->
       <div class="top-bar" id="encounterTimerBar">
-        <span>Encounter Timer: <span id="timerDisplay">05:00</span></span>
+        <!-- Wrap the title and value in a container -->
+        <div class="timer-block">
+          <span class="timer-title">Encounter Timer:</span>
+          <span class="timer-value" id="timerDisplay">05:00</span>
+        </div>
+
         <button id="pauseResumeButton" style="background: none; border: none; color: white;">⏸</button>
       </div>
+
+
+      <!-- Recon Timer block -->
       <div class="recon-bar" id="reconTimerBar">
-        Recon Timer: <span id="reconTimerDisplay">00 sec</span>
+        <div class="timer-block">
+          <span class="timer-title">Recon Timer:</span>
+          <span class="timer-value" id="reconTimerDisplay">00 sec</span>
+        </div>
       </div>
+
+
       <p id="penaltyWarning" style="text-align: center; color: red; font-size: 1.2em; display: none;"></p>
       <!-- Game Content -->
       <div id="gameContent">
@@ -319,6 +550,8 @@
         switchStep(step);
       });
     });
+    
+    //switchStep("start-game")
 
     function resetGameUI() {
       document.getElementById("startReconButton").style.display = "block";
@@ -355,7 +588,7 @@
       { name: "A BOO-BOO", type: "event" },
       { name: "CONFUSION", type: "event" },
       { name: "DUNGEON ERROR IN YOUR FAVOR", type: "event" },
-      { name: "GIMME A HARD!", type: "event" },
+      { name: "GIMME A HAND!", type: "event" },
       { name: "LOCKED DOOR!", type: "event" },
       { name: "YET MORE SPIKES!", type: "event" },
       { name: "SUDDEN ILLNESS", type: "event" },
@@ -376,7 +609,7 @@
       { name: "A CACTUS THAT WANTS A HUG", type: "monster" },
       { name: "THE DUCK OF CANTERBURY", type: "monster" },
       { name: "EEEEWWWWWWW", type: "monster" },
-      { name: "A GAB-ERWOCKY", type: "monster" },
+      { name: "A GAB-ERWOCKY ... GET IT? YOU GOT IT", type: "monster" },
       { name: "GORBLIN", type: "monster" },
       { name: "GRIFFIN-DOOR", type: "monster" },
       { name: "LOTS AND LOTS OF ZOMBIES", type: "monster" },
@@ -395,24 +628,27 @@
       { name: "THE CARPAL TUNNEL", type: "obstacle" },
       { name: "A CHAIR THAT IS VERY UNCOMFORTABLE", type: "obstacle" },
       { name: "COLLAPSED CEILING", type: "obstacle" },
-      { name: "A DEADLY GAME or HOPSCOTCH", type: "obstacle" },
+      { name: "A DEADLY GAME OF HOPSCOTCH", type: "obstacle" },
       { name: "DISAPPEARING BLOCKS", type: "obstacle" },
       { name: "INVISIBLE WALL", type: "obstacle" },
       { name: "JACK THE RIPPER IN A BOX", type: "obstacle" },
-      { name: "A LITERAL STRAWHAN", type: "obstacle" },
+      { name: "A LITERAL STRAWMAN", type: "obstacle" },
       { name: "LIVING VINES", type: "obstacle" },
       { name: "A VERY LONG LOADING SCREEN", type: "obstacle" },
       { name: "QUICKSAND", type: "obstacle" },
       { name: "SHORTCUT", type: "obstacle" },
       { name: "A SURPRISE DODGEBALL TOURNAMENT", type: "obstacle" },
-      { name: "ONE GUY, TWO -BOWS", type: "person" },
+      { name: "A LUDICROUSLY TALL WALL OF ICE", type: "obstacle" },
+      { name: "WALL OF SPIKES", type: "obstacle" },
+      { name: "JACKED O'LANTERNS", type: "person" },
+      { name: "ONE GUY, TWO-BOWS", type: "person" },
       { name: "TWO GUYS, ONE BOW", type: "person" },
       { name: "7 UNHELPFUL DWARFS", type: "person" },
       { name: "EXACTLY 26 NINJAS", type: "person" },
       { name: "AN ARM DEALER", type: "person" },
       { name: "BARBER-ARIAN", type: "person" },
       { name: "AN OVERLY-DRAMATIC MONOLOGUE", type: "person" },
-      { name: "GHOST", type: "person" },
+      { name: "A GHOST", type: "person" },
       { name: "GROZZNAK THE TALL", type: "person" },
       { name: "MASSIVE PAULDRONS", type: "person" },
       { name: "AN OVERPRICED MERCHANT", type: "person" },
@@ -724,7 +960,6 @@
     cancelPenaltyButton.addEventListener("click", cancelPenalty);
 
     // New Round Button: Reset game state and return to Choose Encounter step.
-    // New code:
     document.getElementById("newRoundButton").addEventListener("click", () => {
       if (confirm("New Round Starting! Are you sure?")) {
         remainingTime = timerDuration;
@@ -735,10 +970,10 @@
         phase1ChallengeInterval = null;
         isPaused = false;
         updateEncounterTimerDisplay();
+        // Go back to Choose Encounter step.
         switchStep("choose-encounter");
       }
     });
-
 
     // Add the pause/resume event listener for the pauseResumeButton.
     document.getElementById("pauseResumeButton").addEventListener("click", () => {
