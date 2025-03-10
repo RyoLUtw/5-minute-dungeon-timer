@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>5 Minute Dungeon Timer</title>
+    <style>
+      /* Set a max-width for the viewport (common smartphone width, e.g., 414px) */
+      body {
+        max-width: 414px;
+        margin: 0 auto;
+        padding: 0 10px;
+        font-family: Arial, sans-serif;
+        transition: background-color 0.5s ease;
+      }
+      /* === Global Styles === */
+      /* Sidebar Styles (Floating Over Main Content) */
+      #sidebar {
+        width: 250px;
+        background-color: #333;
+        color: white;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        padding: 20px;
+        z-index: 1000;
+        display: none;
+      }
+      #sidebar ul {
+        list-style: none;
+        padding: 0;
+      }
+      #sidebar li {
+        padding: 10px;
+        cursor: pointer;
+      }
+      #sidebar li:hover {
+        background-color: #444;
+      }
+      /* Expand Sidebar Button */
+      #expandSidebarButton {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 1100;
+        font-size: 1.5em;
+        background: #333;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+        display: block;
+      }
+      /* Main Content Styles */
+      #main-content {
+        padding: 20px;
+        margin: 0;
+      }
+      .step-content {
+        display: none;
+        padding: 15px;
+      }
+      /* Top Bar (Game Step) */
+      .top-bar {
+        background-color: #333;
+        color: white;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 2em;
+      }
+      .recon-bar {
+        background-color: #7f8c8d;
+        color: white;
+        padding: 10px;
+        font-size: 1.5em;
+        margin-top: 10px;
+        display: none;
+      }
+      /* Game Container */
+      #gameContent {
+        margin-top: 20px;
+        text-align: center;
+      }
+      button {
+        font-size: 1.2em;
+        padding: 10px 15px;
+        margin: 10px;
+        cursor: pointer;
+        border: none;
+        border-radius: 4px;
+      }
+      /* Collapsible Encounter Sections */
+      .encounter-section {
+        border: 1px solid #ccc;
+        margin-bottom: 10px;
+      }
+      .section-header {
+        background-color: #c6c6c6;
+        color: #000;
+        font-size: 1.2em;
+        padding: 8px;
+        border-radius: 4px;
+        margin-bottom: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .section-content {
+        background-color: #f9f9f9;
+        padding: 8px;
+        border: 1px solid #bdc3c7;
+        border-radius: 4px;
+        margin-bottom: 10px;
+      }
+      /* Input elements */
+      input[type="text"],
+      input[type="number"] {
+        font-size: 1em;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+      }
+      input[type="checkbox"] {
+        transform: scale(1.1);
+        margin-right: 5px;
+      }
+      /* Toggle Switch Styles */
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 24px;
+      }
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 24px;
+      }
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 2px;
+        bottom: 2px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+      .toggle-switch input:checked + .slider {
+        background-color: #2196F3;
+      }
+      .toggle-switch input:checked + .slider:before {
+        transform: translateX(16px);
+      }
+      /* Step 1: Choose Encounter */
+      #step-choose-encounter h2 {
+        font-size: 2em;
+        font-weight: bold;
+        color: #2c3e50;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+      #step-choose-encounter .section-header {
+        background-color: #c6c6c6;
+        color: #000;
+        font-size: 1.2em;
+        padding: 8px;
+        border-radius: 4px;
+        margin-bottom: 5px;
+      }
+      #step-choose-encounter .section-content {
+        background-color: #f9f9f9;
+        padding: 8px;
+        border: 1px solid #bdc3c7;
+        border-radius: 4px;
+        margin-bottom: 10px;
+      }
+      #step-choose-encounter label {
+        display: block;
+        position: relative;
+        padding-left: 25px;
+        margin-bottom: 10px;
+      }
+      #step-choose-encounter label input[type="checkbox"] {
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+      #step-choose-encounter button {
+        font-size: 0.7em;
+        padding: 8px 12px;
+        background-color: #ffffff;
+        color: #000;
+        border: solid 1px #000;
+        margin: 5px 0;
+      }
+      #step-choose-encounter #presetButton,
+      #step-choose-encounter #saveEncounterSelection,
+      #step-choose-encounter #manageLocalStorageButton {
+        font-size: 1em;
+        padding: 8px 12px;
+        background-color: #3498db;
+        color: #fff;
+        margin: 5px 0;
+        width: 100%;
+      }
+      /* Step 2: Game Settings */
+      #step-game-settings h2 {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #27ae60;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+      #step-game-settings .settings-form label {
+        font-size: 1.1em;
+        color: #2d3436;
+        margin-bottom: 5px;
+        display: block;
+      }
+      #step-game-settings .settings-form input[type="text"],
+      #step-game-settings .settings-form input[type="number"] {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #dfe6e9;
+        border-radius: 4px;
+        margin-bottom: 10px;
+      }
+      #step-game-settings button {
+        font-size: 1.2em;
+        padding: 8px 12px;
+        background-color: #16a085;
+        color: #fff;
+        margin-top: 10px;
+      }
+      /* Step 3: Start Game */
+      #step-start-game .top-bar {
+        font-size: 1.5em;
+        background-color: #34495e;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      #step-start-game .top-bar .timer-block {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-left: 20px;
+      }
+      #step-start-game .top-bar .timer-title {
+        font-size: 0.8em;
+        margin-bottom: 5px;
+      }
+      #step-start-game .top-bar .timer-value {
+        font-size: 2.5em;
+      }
+      #step-start-game #gameContent button {
+        font-size: 1.2em;
+        padding: 10px;
+        background-color: #fff;
+        color: #2980b9;
+        border: solid 2px #2980b9;
+        margin-bottom: 10px;
+        width: 100%;
+      }
+      #step-start-game #gameContent #startReconButton,
+      #step-start-game #gameContent #startEncounterButton,
+      #step-start-game #gameContent #completeEncounterButton {
+        background-color: #2980b9;
+        color: #fff;
+      }
+      #step-start-game .recon-bar {
+        font-size: 1.2em;
+        background-color: #7f8c8d;
+        padding: 10px;
+        margin-top: 10px;
+      }
+      /* Local Storage Modal */
+      #localStorageModal {
+        display: none;
+        position: fixed;
+        z-index: 1200;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+      }
+      #localStorageModal .modal-content {
+        background-color: #fefefe;
+        margin: 10% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 300px;
+        text-align: left;
+      }
+      #localStorageModal .modal-close {
+        float: right;
+        cursor: pointer;
+        font-size: 20px;
+      }
+      #localStorageList div {
+        margin: 5px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Expand Sidebar Button (Top Right) -->
+    <button id="expandSidebarButton">☰</button>
+    <!-- Sidebar Navigation -->
+    <div id="sidebar">
+      <ul>
+        <li data-step="choose-encounter">Choose Encounter</li>
+        <li data-step="game-settings">Game Settings</li>
+        <li data-step="start-game">Start Game</li>
+      </ul>
+    </div>
+    <!-- Main Content Area -->
+    <div id="main-content">
+      <!-- Step 1: Choose Encounter -->
+      <div id="step-choose-encounter" class="step-content">
+        <h2>Choose Encounters</h2>
+        <!-- Preset Selection Button (opens modal in USE mode) -->
+        <button id="presetButton">Preset Selection</button>
+        <!-- Global Search -->
+        <input type="text" id="encounterSearchInput" placeholder="Search encounters..." />
+        <br />
+        <!-- Collapsible Encounter Sections -->
+        <div class="encounter-section" data-type="event">
+          <div class="section-header">
+            <span>Event</span>
+            <button class="toggle-select-btn" data-type="event">Select All</button>
+          </div>
+          <div class="section-content"></div>
+        </div>
+        <div class="encounter-section" data-type="mini-boss">
+          <div class="section-header">
+            <span>Mini-Boss</span>
+            <button class="toggle-select-btn" data-type="mini-boss">Select All</button>
+          </div>
+          <div class="section-content"></div>
+        </div>
+        <div class="encounter-section" data-type="monster">
+          <div class="section-header">
+            <span>Monster</span>
+            <button class="toggle-select-btn" data-type="monster">Select All</button>
+          </div>
+          <div class="section-content"></div>
+        </div>
+        <div class="encounter-section" data-type="obstacle">
+          <div class="section-header">
+            <span>Obstacle</span>
+            <button class="toggle-select-btn" data-type="obstacle">Select All</button>
+          </div>
+          <div class="section-content"></div>
+        </div>
+        <div class="encounter-section" data-type="person">
+          <div class="section-header">
+            <span>Person</span>
+            <button class="toggle-select-btn" data-type="person">Select All</button>
+          </div>
+          <div class="section-content"></div>
+        </div>
+        <!-- Save Selection & Next Button -->
+        <button id="saveEncounterSelection">Save Selection &amp; Next</button>
+        <!-- Manage Selections Button -->
+        <button id="manageLocalStorageButton">Manage Selections</button>
+      </div>
+      <!-- Step 2: Game Settings -->
+      <div id="step-game-settings" class="step-content" style="display:none;">
+        <h2>Game Settings</h2>
+        <div class="settings-form">
+          <div>
+            <label>Challenge Mode</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="challengeModeToggle" />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div id="challengeModeSettings" style="display: none;">
+            <p>
+              When enabled, a separate timer for the Recon Phase will start.
+              If it counts down to zero before starting the encounter, a penalty is applied.
+            </p>
+            <label for="phase1TimerInput">Recon Timer Length (seconds):</label>
+            <input type="number" id="phase1TimerInput" value="10" />
+          </div>
+          <div>
+            <label for="penaltyTimeInput">Penalty Time (seconds):</label>
+            <input type="number" id="penaltyTimeInput" value="10" />
+          </div>
+          <button id="saveSettingsButton">Save Settings &amp; Next</button>
+        </div>
+      </div>
+      <!-- Step 3: Start Game -->
+      <div id="step-start-game" class="step-content" style="display:none;">
+        <!-- Top Bar with Timer and Pause Icon -->
+        <div class="top-bar" id="encounterTimerBar">
+          <div class="timer-block">
+            <span class="timer-title">Encounter Timer:</span>
+            <span class="timer-value" id="timerDisplay">05:00</span>
+          </div>
+          <button id="pauseResumeButton" style="background: none; border: none; color: white;">⏸</button>
+        </div>
+        <!-- Recon Timer Block -->
+        <div class="recon-bar" id="reconTimerBar">
+          <div class="timer-block">
+            <span class="timer-title">Recon Timer:</span>
+            <span class="timer-value" id="reconTimerDisplay">00 sec</span>
+          </div>
+        </div>
+        <p id="penaltyWarning" style="text-align: center; color: red; font-size: 1.2em; display: none;"></p>
+        <!-- Game Content -->
+        <div id="gameContent">
+          <button id="startReconButton">Start Recon</button>
+          <div id="phase1" class="phase" style="display:none;">
+            <h1 id="encounterName"></h1>
+            <p id="phase1Instruction">Recon Phase: Identify the encounter displayed above.</p>
+            <button id="startEncounterButton">Start Encounter</button>
+            <br />
+            <button id="penaltyButton">Misidentified Encounter</button>
+            <button id="cancelPenaltyButton">Cancel Penalty</button>
+          </div>
+          <div id="phase2" class="phase" style="display:none;">
+            <p id="phase2Instruction">Encounter Phase in progress. Timer is counting down.</p>
+            <button id="completeEncounterButton">Complete Encounter</button>
+          </div>
+          <!-- New Round Button -->
+          <button id="newRoundButton" style="display:none;">New Round</button>
+        </div>
+      </div>
+    </div>
+    <!-- Local Storage Modal (used for both Manage and Preset Selection modes) -->
+    <div id="localStorageModal" class="modal">
+      <div class="modal-content">
+        <span class="modal-close" id="closeLocalStorageModal">&times;</span>
+        <h2 id="localStorageModalTitle">Manage Selections</h2>
+        <div id="localStorageList"></div>
+        <!-- Manage Buttons -->
+        <div id="localStorageManageButtons">
+          <button id="renameSelectionButton">Rename</button>
+          <button id="deleteSelectionButton">Delete</button>
+          <button id="exportSelectionButton">Export as JSON</button>
+        </div>
+        <!-- Use Selection Button (shown in preset mode) -->
+        <div id="localStorageUseButtons" style="display:none;">
+          <button id="useSelectionButton">Use Selection</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      /**********************
+       * Sidebar Navigation *
+       **********************/
+      const sidebar = document.getElementById("sidebar");
+      const expandSidebarButton = document.getElementById("expandSidebarButton");
+      const stepContents = document.querySelectorAll(".step-content");
+      const sidebarItems = document.querySelectorAll("#sidebar li");
+      // Initially, show "Choose Encounter"
+      document.getElementById("step-choose-encounter").style.display = "block";
+      expandSidebarButton.style.display = "block";
+      sidebarItems.forEach(item => {
+        item.addEventListener("click", () => {
+          const step = item.getAttribute("data-step");
+          switchStep(step);
+        });
+      });
+      function resetGameUI() {
+        document.getElementById("startReconButton").style.display = "block";
+        document.getElementById("phase1").style.display = "none";
+        document.getElementById("phase2").style.display = "none";
+        document.getElementById("newRoundButton").style.display = "none";
+      }
+      function switchStep(step) {
+        stepContents.forEach(content => content.style.display = "none");
+        document.getElementById("step-" + step).style.display = "block";
+        sidebar.style.display = "none";
+        expandSidebarButton.style.display = "block";
+        if (step === "start-game") {
+          resetGameUI();
+        }
+      }
+      expandSidebarButton.addEventListener("click", () => {
+        sidebar.style.display = "block";
+        expandSidebarButton.style.display = "none";
+      });
+      /**************************************
+       * Step 1: Choose Encounter Logic *
+       **************************************/
+      let encounterList = [
+        { name: "AMBUSH!", type: "event" },
+        { name: "A BOO-BOO", type: "event" },
+        { name: "CONFUSION", type: "event" },
+        { name: "DUNGEON ERROR IN YOUR FAVOR", type: "event" },
+        { name: "GIMME A HAND!", type: "event" },
+        { name: "LOCKED DOOR!", type: "event" },
+        { name: "YET MORE SPIKES!", type: "event" },
+        { name: "SUDDEN ILLNESS", type: "event" },
+        { name: "TRAP DOOR", type: "event" },
+        { name: "AN UNGODLY AMOUNT OF PORCUPINES", type: "event" },
+        { name: "DAS BOOT!", type: "mini-boss" },
+        { name: "THE DREADED TRI-BREAD", type: "mini-boss" },
+        { name: "GIANT ENEMY CRAB", type: "mini-boss" },
+        { name: "THE GOBLIN KING", type: "mini-boss" },
+        { name: "A LOW-TECH MECH", type: "mini-boss" },
+        { name: "A VERY MINI MINI-BOSS", type: "mini-boss" },
+        { name: "A MINIATURE T-REX", type: "mini-boss" },
+        { name: "THE RAT KING", type: "mini-boss" },
+        { name: "THE COLLECTOR", type: "mini-boss" },
+        { name: "A WIZARD OF ILL REPUTE", type: "mini-boss" },
+        { name: "A RATHER UNPLEASANT PHEASANT", type: "monster" },
+        { name: "ADORABLE SLIME", type: "monster" },
+        { name: "A CACTUS THAT WANTS A HUG", type: "monster" },
+        { name: "THE DUCK OF CANTERBURY", type: "monster" },
+        { name: "EEEEWWWWWWW", type: "monster" },
+        { name: "A GAB-ERWOCKY ... GET IT? YOU GOT IT", type: "monster" },
+        { name: "GORBLIN", type: "monster" },
+        { name: "GRIFFIN-DOOR", type: "monster" },
+        { name: "LOTS AND LOTS OF ZOMBIES", type: "monster" },
+        { name: "A ROSETTA STONE GOLEM", type: "monster" },
+        { name: "SHARK WITH LEGS!!", type: "monster" },
+        { name: "SIR FUZZYLUMPS", type: "monster" },
+        { name: "A STRAIGHT-UP GHOST", type: "monster" },
+        { name: "A SUSPICIOUS LOOKING CRATE", type: "monster" },
+        { name: "THE CHROMICORN", type: "monster" },
+        { name: "A TIMBER-WOLF", type: "monster" },
+        { name: "A CREATURE OF UNFATHOMABLE EVIL", type: "monster" },
+        { name: "UUGGHH... BOOTS", type: "monster" },
+        { name: "A DEFINITELY NOT BOOBY-TRAPPED CHEST", type: "obstacle" },
+        { name: "BOTTOMLESS PIT", type: "obstacle" },
+        { name: "JUST A BUNCH OF STAIRS", type: "obstacle" },
+        { name: "THE CARPAL TUNNEL", type: "obstacle" },
+        { name: "A CHAIR THAT IS VERY UNCOMFORTABLE", type: "obstacle" },
+        { name: "COLLAPSED CEILING", type: "obstacle" },
+        { name: "A DEADLY GAME OF HOPSCOTCH", type: "obstacle" },
+        { name: "DISAPPEARING BLOCKS", type: "obstacle" },
+        { name: "INVISIBLE WALL", type: "obstacle" },
+        { name: "JACK THE RIPPER IN A BOX", type: "obstacle" },
+        { name: "A LITERAL STRAWMAN", type: "obstacle" },
+        { name: "LIVING VINES", type: "obstacle" },
+        { name: "A VERY LONG LOADING SCREEN", type: "obstacle" },
+        { name: "QUICKSAND", type: "obstacle" },
+        { name: "SHORTCUT", type: "obstacle" },
+        { name: "A SURPRISE DODGEBALL TOURNAMENT", type: "obstacle" },
+        { name: "A LUDICROUSLY TALL WALL OF ICE", type: "obstacle" },
+        { name: "WALL OF SPIKES", type: "obstacle" },
+        { name: "JACKED O'LANTERNS", type: "person" },
+        { name: "ONE GUY, TWO-BOWS", type: "person" },
+        { name: "TWO GUYS, ONE BOW", type: "person" },
+        { name: "7 UNHELPFUL DWARFS", type: "person" },
+        { name: "EXACTLY 26 NINJAS", type: "person" },
+        { name: "AN ARM DEALER", type: "person" },
+        { name: "BARBER-ARIAN", type: "person" },
+        { name: "AN OVERLY-DRAMATIC MONOLOGUE", type: "person" },
+        { name: "A GHOST", type: "person" },
+        { name: "GROZZNAK THE TALL", type: "person" },
+        { name: "MASSIVE PAULDRONS", type: "person" },
+        { name: "AN OVERPRICED MERCHANT", type: "person" },
+        { name: "A TERRIBLE, NO-GOOD, AWFUL PUPPET SHOW", type: "person" },
+        { name: "A GAGGLE OF SCREAMING CHILDREN", type: "person" },
+        { name: "A SLEEPING GIANT", type: "person" },
+        { name: "SQUIRE NEDWARD", type: "person" },
+        { name: "STEVE", type: "person" },
+        { name: "THE NECROBOUNCER", type: "person" },
+        { name: "A WARRIOR PRINCESS", type: "person" }
+      ];
+      // Global selection state (map: "name-type" => boolean)
+      let selectedEncounterMap = {};
+      encounterList.forEach(enc => {
+        const key = enc.name + "-" + enc.type;
+        selectedEncounterMap[key] = false;
+      });
+      // Render encounter sections
+      function renderEncounterSections() {
+        const encounterTypes = ["event", "mini-boss", "monster", "obstacle", "person"];
+        const searchQuery = document.getElementById("encounterSearchInput").value.toLowerCase();
+        encounterTypes.forEach(type => {
+          const sectionContent = document.querySelector(`.encounter-section[data-type="${type}"] .section-content`);
+          const filtered = encounterList
+            .filter(enc => enc.type === type && enc.name.toLowerCase().includes(searchQuery))
+            .sort((a, b) => a.name.localeCompare(b.name));
+          let html = "";
+          filtered.forEach(enc => {
+            const key = enc.name + "-" + enc.type;
+            const checked = selectedEncounterMap[key] ? "checked" : "";
+            html += `<div>
+                       <label>
+                         <input type="checkbox" class="encounterCheckbox" data-key="${key}" ${checked}>
+                         ${enc.name}
+                       </label>
+                     </div>`;
+          });
+          sectionContent.innerHTML = html;
+        });
+        document.querySelectorAll(".encounterCheckbox").forEach(cb => {
+          cb.addEventListener("change", (e) => {
+            const key = e.target.getAttribute("data-key");
+            selectedEncounterMap[key] = e.target.checked;
+            const section = e.target.closest('.encounter-section');
+            const type = section.getAttribute("data-type");
+            updateToggleButton(type);
+          });
+        });
+      }
+      function updateToggleButton(sectionType) {
+        const checkboxes = document.querySelectorAll(`.encounter-section[data-type="${sectionType}"] .encounterCheckbox`);
+        let allChecked = true;
+        checkboxes.forEach(cb => { if (!cb.checked) allChecked = false; });
+        const btn = document.querySelector(`.encounter-section[data-type="${sectionType}"] .toggle-select-btn`);
+        btn.textContent = allChecked ? "Select None" : "Select All";
+      }
+      document.querySelectorAll(".toggle-select-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const type = btn.getAttribute("data-type");
+          const checkboxes = document.querySelectorAll(`.encounter-section[data-type="${type}"] .encounterCheckbox`);
+          let allChecked = true;
+          checkboxes.forEach(cb => { if (!cb.checked) allChecked = false; });
+          const newState = !allChecked;
+          checkboxes.forEach(cb => {
+            cb.checked = newState;
+            const key = cb.getAttribute("data-key");
+            selectedEncounterMap[key] = newState;
+          });
+          btn.textContent = newState ? "Select None" : "Select All";
+        });
+      });
+      document.getElementById("encounterSearchInput").addEventListener("input", renderEncounterSections);
+      document.getElementById("presetButton").addEventListener("click", () => {
+        showLocalStorageModal("use");
+      });
+      // Save Selection & Next: Save to localStorage and switch step
+      document.getElementById("saveEncounterSelection").addEventListener("click", () => {
+        // Build array of selected encounters from encounterList
+        const selectedEncounters = encounterList.filter(enc => {
+          const key = enc.name + "-" + enc.type;
+          return selectedEncounterMap[key];
+        });
+        // Save to global variable for gameplay
+        selectedEncountersGlobal = selectedEncounters;
+        availableEncounters = [...selectedEncountersGlobal];
+        // Create a default name based on current date/time
+        const now = new Date();
+        const defaultName = "Selection_" + now.toISOString();
+        // Retrieve existing selections from localStorage (stored as JSON array)
+        let savedSelections = JSON.parse(localStorage.getItem("encounterSelections") || "[]");
+        // Add new selection object
+        savedSelections.push({ name: defaultName, data: selectedEncounters });
+        localStorage.setItem("encounterSelections", JSON.stringify(savedSelections));
+        switchStep("game-settings");
+      });
+      // Manage Selections button
+      document.getElementById("manageLocalStorageButton").addEventListener("click", () => {
+        showLocalStorageModal("manage");
+      });
+      renderEncounterSections();
+      /***********************************
+       * Step 2: Game Settings Logic *
+       ***********************************/
+      document.getElementById("challengeModeToggle").addEventListener("change", (e) => {
+        document.getElementById("challengeModeSettings").style.display = e.target.checked ? "block" : "none";
+      });
+      let penaltyTime = 10;
+      let challengeModeEnabled = false;
+      let challengePhase1Duration = 10;
+      document.getElementById("saveSettingsButton").addEventListener("click", () => {
+        let pVal = parseInt(document.getElementById("penaltyTimeInput").value);
+        if (!isNaN(pVal)) penaltyTime = pVal;
+        if (document.getElementById("challengeModeToggle").checked) {
+          let tVal = parseInt(document.getElementById("phase1TimerInput").value);
+          if (!isNaN(tVal)) challengePhase1Duration = tVal;
+          challengeModeEnabled = true;
+        } else {
+          challengeModeEnabled = false;
+        }
+        switchStep("start-game");
+      });
+      /******************************
+       * Step 3: Start Game Logic *
+       ******************************/
+      let timerDuration = 300;
+      let remainingTime = timerDuration;
+      let timerInterval = null;
+      let phase1ChallengeTimerRemaining = 0;
+      let phase1ChallengeInterval = null;
+      let isPaused = false;
+      const timerDisplay = document.getElementById("timerDisplay");
+      const reconTimerDisplay = document.getElementById("reconTimerDisplay");
+      const penaltyWarning = document.getElementById("penaltyWarning");
+      const encounterNameElem = document.getElementById("encounterName");
+      const startReconButton = document.getElementById("startReconButton");
+      const startEncounterButton = document.getElementById("startEncounterButton");
+      const completeEncounterButton = document.getElementById("completeEncounterButton");
+      const penaltyButton = document.getElementById("penaltyButton");
+      const cancelPenaltyButton = document.getElementById("cancelPenaltyButton");
+      // Use the selection saved in Step 1 (global)
+      let selectedEncountersGlobal = encounterList.filter(enc => {
+        const key = enc.name + "-" + enc.type;
+        return selectedEncounterMap[key];
+      });
+      let availableEncounters = [...selectedEncountersGlobal];
+      function formatTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+      }
+      function updateEncounterTimerDisplay() {
+        timerDisplay.textContent = formatTime(remainingTime);
+        if (remainingTime <= 0) document.body.style.backgroundColor = "red";
+      }
+      function updateReconTimerDisplay() {
+        reconTimerDisplay.textContent = phase1ChallengeTimerRemaining + " sec";
+      }
+      function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          if (remainingTime > 0) {
+            remainingTime--;
+            updateEncounterTimerDisplay();
+            if (remainingTime <= 0) {
+              clearInterval(timerInterval);
+              alert("Time's up!");
+            }
+          }
+        }, 1000);
+      }
+      function stopTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+      }
+      function initReconPhase() {
+        stopTimer();
+        if (availableEncounters.length > 0) {
+          const randomIndex = Math.floor(Math.random() * availableEncounters.length);
+          const encounter = availableEncounters.splice(randomIndex, 1)[0];
+          encounterNameElem.textContent = encounter.name;
+        } else {
+          encounterNameElem.textContent = "No more encounters!";
+        }
+        penaltyWarning.style.display = "none";
+        penaltyWarning.textContent = "";
+        if (challengeModeEnabled) {
+          phase1ChallengeTimerRemaining = challengePhase1Duration;
+          updateReconTimerDisplay();
+          document.getElementById("reconTimerBar").style.display = "flex";
+          if (phase1ChallengeInterval) clearInterval(phase1ChallengeInterval);
+          phase1ChallengeInterval = setInterval(() => {
+            phase1ChallengeTimerRemaining--;
+            updateReconTimerDisplay();
+            if (phase1ChallengeTimerRemaining <= 0) {
+              clearInterval(phase1ChallengeInterval);
+              remainingTime = Math.max(0, remainingTime - penaltyTime);
+              updateEncounterTimerDisplay();
+              document.getElementById("reconTimerBar").style.display = "none";
+              penaltyWarning.textContent = "Time expired, penalty applied.";
+              penaltyWarning.style.display = "block";
+            }
+          }, 1000);
+        } else {
+          document.getElementById("reconTimerBar").style.display = "none";
+        }
+      }
+      function goToEncounterPhase() {
+        document.getElementById("phase1").style.display = "none";
+        document.getElementById("phase2").style.display = "block";
+        startTimer();
+      }
+      function completeEncounter() {
+        stopTimer();
+        document.getElementById("phase2").style.display = "none";
+        document.getElementById("phase1").style.display = "block";
+        initReconPhase();
+      }
+      function applyPenalty() {
+        remainingTime = Math.max(0, remainingTime - penaltyTime);
+        updateEncounterTimerDisplay();
+      }
+      function cancelPenalty() {
+        remainingTime = Math.min(timerDuration, remainingTime + penaltyTime);
+        updateEncounterTimerDisplay();
+      }
+      function pauseCurrentTimer() {
+        if (document.getElementById("phase1").style.display === "block" && challengeModeEnabled && phase1ChallengeInterval) {
+          clearInterval(phase1ChallengeInterval);
+          phase1ChallengeInterval = null;
+        } else if (document.getElementById("phase2").style.display === "block" && timerInterval) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+      }
+      function resumeCurrentTimer() {
+        if (document.getElementById("phase1").style.display === "block" && challengeModeEnabled) {
+          phase1ChallengeInterval = setInterval(() => {
+            phase1ChallengeTimerRemaining--;
+            updateReconTimerDisplay();
+            if (phase1ChallengeTimerRemaining <= 0) {
+              clearInterval(phase1ChallengeInterval);
+              remainingTime = Math.max(0, remainingTime - penaltyTime);
+              updateEncounterTimerDisplay();
+              document.getElementById("reconTimerBar").style.display = "none";
+              penaltyWarning.textContent = "Time expired, penalty applied.";
+              penaltyWarning.style.display = "block";
+            }
+          }, 1000);
+        } else if (document.getElementById("phase2").style.display === "block") {
+          startTimer();
+        }
+      }
+      document.getElementById("startReconButton").addEventListener("click", () => {
+        document.getElementById("expandSidebarButton").style.display = "none";
+        document.getElementById("startReconButton").style.display = "none";
+        document.getElementById("phase1").style.display = "block";
+        initReconPhase();
+        document.getElementById("newRoundButton").style.display = "block";
+      });
+      document.getElementById("startEncounterButton").addEventListener("click", () => {
+        if (challengeModeEnabled && phase1ChallengeInterval) {
+          clearInterval(phase1ChallengeInterval);
+          phase1ChallengeInterval = null;
+        }
+        document.getElementById("reconTimerBar").style.display = "none";
+        penaltyWarning.style.display = "none";
+        goToEncounterPhase();
+      });
+      document.getElementById("completeEncounterButton").addEventListener("click", completeEncounter);
+      penaltyButton.addEventListener("click", applyPenalty);
+      cancelPenaltyButton.addEventListener("click", cancelPenalty);
+      document.getElementById("pauseResumeButton").addEventListener("click", () => {
+        if (!isPaused) {
+          pauseCurrentTimer();
+          document.getElementById("pauseResumeButton").textContent = "▶";
+          isPaused = true;
+        } else {
+          resumeCurrentTimer();
+          document.getElementById("pauseResumeButton").textContent = "⏸";
+          isPaused = false;
+        }
+      });
+      document.getElementById("newRoundButton").addEventListener("click", () => {
+        if (confirm("New Round Starting! Are you sure?")) {
+          remainingTime = timerDuration;
+          clearInterval(timerInterval);
+          timerInterval = null;
+          phase1ChallengeTimerRemaining = challengeModeEnabled ? challengePhase1Duration : 0;
+          clearInterval(phase1ChallengeInterval);
+          phase1ChallengeInterval = null;
+          isPaused = false;
+          updateEncounterTimerDisplay();
+          switchStep("choose-encounter");
+        }
+      });
+      updateEncounterTimerDisplay();
+      /***************************************
+       * Local Storage Management Functions *
+       ***************************************/
+      // Show the local storage modal in given mode ("manage" or "use")
+      function showLocalStorageModal(mode) {
+        localStorageMode = mode; // global mode variable
+        // Set modal title and buttons visibility based on mode
+        if (mode === "manage") {
+          document.getElementById("localStorageModalTitle").textContent = "Manage Selections";
+          document.getElementById("localStorageManageButtons").style.display = "block";
+          document.getElementById("localStorageUseButtons").style.display = "none";
+        } else if (mode === "use") {
+          document.getElementById("localStorageModalTitle").textContent = "Select Preset Selection(s)";
+          document.getElementById("localStorageManageButtons").style.display = "none";
+          document.getElementById("localStorageUseButtons").style.display = "block";
+        }
+        populateLocalStorageList();
+        document.getElementById("localStorageModal").style.display = "block";
+      }
+      // Populate the modal list with saved selections from localStorage
+      function populateLocalStorageList() {
+        let savedSelections = JSON.parse(localStorage.getItem("encounterSelections") || "[]");
+        const listDiv = document.getElementById("localStorageList");
+        listDiv.innerHTML = "";
+        savedSelections.forEach((sel, index) => {
+          const div = document.createElement("div");
+          div.innerHTML = `<input type="checkbox" class="savedSelectionCheckbox" data-index="${index}" /> 
+                           <span>${sel.name}</span>`;
+          listDiv.appendChild(div);
+        });
+      }
+      // Function to combine multiple selections (remove duplicates based on name-type)
+      function combineSelections(selections) {
+        let combined = [];
+        let seen = {};
+        selections.forEach(sel => {
+          sel.data.forEach(enc => {
+            const key = enc.name + "-" + enc.type;
+            if (!seen[key]) {
+              seen[key] = true;
+              combined.push(enc);
+            }
+          });
+        });
+        return combined;
+      }
+      // Event listeners for modal buttons
+      document.getElementById("closeLocalStorageModal").addEventListener("click", () => {
+        document.getElementById("localStorageModal").style.display = "none";
+      });
+      document.getElementById("renameSelectionButton").addEventListener("click", () => {
+        const selectedIndexes = Array.from(document.querySelectorAll(".savedSelectionCheckbox"))
+          .filter(cb => cb.checked)
+          .map(cb => parseInt(cb.getAttribute("data-index")));
+        if (selectedIndexes.length !== 1) {
+          alert("Please select exactly one selection to rename.");
+          return;
+        }
+        const newName = prompt("Enter new name:");
+        if (newName) {
+          let savedSelections = JSON.parse(localStorage.getItem("encounterSelections") || "[]");
+          savedSelections[selectedIndexes[0]].name = newName;
+          localStorage.setItem("encounterSelections", JSON.stringify(savedSelections));
+          populateLocalStorageList();
+        }
+      });
+      document.getElementById("deleteSelectionButton").addEventListener("click", () => {
+        const selectedIndexes = Array.from(document.querySelectorAll(".savedSelectionCheckbox"))
+          .filter(cb => cb.checked)
+          .map(cb => parseInt(cb.getAttribute("data-index")));
+        if (selectedIndexes.length === 0) {
+          alert("Please select at least one selection to delete.");
+          return;
+        }
+        if (!confirm("Are you sure you want to delete the selected selection(s)?")) return;
+        let savedSelections = JSON.parse(localStorage.getItem("encounterSelections") || "[]");
+        // Remove in reverse order to preserve indexes
+        selectedIndexes.sort((a, b) => b - a);
+        selectedIndexes.forEach(idx => {
+          savedSelections.splice(idx, 1);
+        });
+        localStorage.setItem("encounterSelections", JSON.stringify(savedSelections));
+        populateLocalStorageList();
+      });
+      document.getElementById("exportSelectionButton").addEventListener("click", () => {
+        const selectedIndexes = Array.from(document.querySelectorAll(".savedSelectionCheckbox"))
+          .filter(cb => cb.checked)
+          .map(cb => parseInt(cb.getAttribute("data-index")));
+        if (selectedIndexes.length === 0) {
+          alert("Please select at least one selection to export.");
+          return;
+        }
+        let savedSelections = JSON.parse(localStorage.getItem("encounterSelections") || "[]");
+        let selectionsToExport = selectedIndexes.map(idx => savedSelections[idx]);
+        if (selectionsToExport.length > 1) {
+          const combine = confirm("Export combined selection? Click OK to combine (duplicates removed) or Cancel to export individually.");
+          if (combine) {
+            const combined = combineSelections(selectionsToExport);
+            const json = JSON.stringify(combined, null, 2);
+            alert("Combined Export:\n" + json);
+          } else {
+            selectionsToExport.forEach(sel => {
+              const json = JSON.stringify(sel, null, 2);
+              alert("Export (" + sel.name + "):\n" + json);
+            });
+          }
+        } else {
+          const json = JSON.stringify(selectionsToExport[0], null, 2);
+          alert("Export:\n" + json);
+        }
+      });
+      document.getElementById("useSelectionButton").addEventListener("click", () => {
+        const selectedIndexes = Array.from(document.querySelectorAll(".savedSelectionCheckbox"))
+          .filter(cb => cb.checked)
+          .map(cb => parseInt(cb.getAttribute("data-index")));
+        if (selectedIndexes.length === 0) {
+          alert("Please select at least one selection to use.");
+          return;
+        }
+        let savedSelections = JSON.parse(localStorage.getItem("encounterSelections") || "[]");
+        let selectionsToUse = selectedIndexes.map(idx => savedSelections[idx]);
+        let combined = selectionsToUse.length === 1 ? selectionsToUse[0].data : combineSelections(selectionsToUse);
+        // Load the combined selection into the global variables for gameplay
+        selectedEncountersGlobal = combined;
+        availableEncounters = [...combined];
+        document.getElementById("localStorageModal").style.display = "none";
+        switchStep("start-game");
+      });
+      // End of Local Storage Management functions
+      /***********************
+       * End of Script *
+       ***********************/
+      window.onbeforeunload = function() {
+        return "Warning: Resetting the timer!";
+      };
+    </script>
+  </body>
+</html>

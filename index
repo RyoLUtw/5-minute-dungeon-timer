@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>5 Minute Dungeon Timer</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Expand Sidebar Button (Top Right) -->
+    <button id="expandSidebarButton">☰</button>
+    <!-- Sidebar Navigation -->
+    <div id="sidebar">
+      <ul>
+        <li data-step="choose-encounter">Choose Encounter</li>
+        <li data-step="game-settings">Game Settings</li>
+        <li data-step="start-game">Start Game</li>
+      </ul>
+    </div>
+    <!-- Main Content Area -->
+    <div id="main-content">
+      <!-- Step 1: Choose Encounter -->
+      <div id="step-choose-encounter" class="step-content">
+        <h2>Choose Encounters</h2>
+        <!-- Preset Selection Button (opens modal in USE mode) -->
+        <button id="presetButton">Preset Selection</button>
+        <!-- Global Search -->
+        <input type="text" id="encounterSearchInput" placeholder="Search encounters..." />
+        <br />
+        <!-- Collapsible Encounter Sections -->
+        <div class="encounter-section" data-type="event">
+          <div class="section-header">
+            <span>Event</span>
+            <button class="toggle-select-btn" data-type="event">Select All</button>
+          </div>
+          <div class="section-content"></div>
+        </div>
+        <div class="encounter-section" data-type="mini-boss">
+          <div class="section-header">
+            <span>Mini-Boss</span>
+            <button class="toggle-select-btn" data-type="mini-boss">Select All</button>
+          </div>
+          <div class="section-content"></div>
+        </div>
+        <div class="encounter-section" data-type="monster">
+          <div class="section-header">
+            <span>Monster</span>
+            <button class="toggle-select-btn" data-type="monster">Select All</button>
+          </div>
+          <div class="section-content"></div>
+        </div>
+        <div class="encounter-section" data-type="obstacle">
+          <div class="section-header">
+            <span>Obstacle</span>
+            <button class="toggle-select-btn" data-type="obstacle">Select All</button>
+          </div>
+          <div class="section-content"></div>
+        </div>
+        <div class="encounter-section" data-type="person">
+          <div class="section-header">
+            <span>Person</span>
+            <button class="toggle-select-btn" data-type="person">Select All</button>
+          </div>
+          <div class="section-content"></div>
+        </div>
+        <!-- Save Selection & Next Button -->
+        <button id="saveEncounterSelection">Save Selection &amp; Next</button>
+        <!-- Manage Selections Button -->
+        <button id="manageLocalStorageButton">Manage Selections</button>
+      </div>
+      <!-- Step 2: Game Settings -->
+      <div id="step-game-settings" class="step-content" style="display:none;">
+        <h2>Game Settings</h2>
+        <div class="settings-form">
+          <div>
+            <label>Challenge Mode</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="challengeModeToggle" />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div id="challengeModeSettings" style="display: none;">
+            <p>
+              When enabled, a separate timer for the Recon Phase will start.
+              If it counts down to zero before starting the encounter, a penalty is applied.
+            </p>
+            <label for="phase1TimerInput">Recon Timer Length (seconds):</label>
+            <input type="number" id="phase1TimerInput" value="10" />
+          </div>
+          <div>
+            <label for="penaltyTimeInput">Penalty Time (seconds):</label>
+            <input type="number" id="penaltyTimeInput" value="10" />
+          </div>
+          <button id="saveSettingsButton">Save Settings &amp; Next</button>
+        </div>
+      </div>
+      <!-- Step 3: Start Game -->
+      <div id="step-start-game" class="step-content" style="display:none;">
+        <!-- Top Bar with Timer and Pause Icon -->
+        <div class="top-bar" id="encounterTimerBar">
+          <div class="timer-block">
+            <span class="timer-title">Encounter Timer:</span>
+            <span class="timer-value" id="timerDisplay">05:00</span>
+          </div>
+          <button id="pauseResumeButton" style="background: none; border: none; color: white;">⏸</button>
+        </div>
+        <!-- Recon Timer Block -->
+        <div class="recon-bar" id="reconTimerBar">
+          <div class="timer-block">
+            <span class="timer-title">Recon Timer:</span>
+            <span class="timer-value" id="reconTimerDisplay">00 sec</span>
+          </div>
+        </div>
+        <p id="penaltyWarning" style="text-align: center; color: red; font-size: 1.2em; display: none;"></p>
+        <!-- Game Content -->
+        <div id="gameContent">
+          <button id="startReconButton">Start Recon</button>
+          <div id="phase1" class="phase" style="display:none;">
+            <h1 id="encounterName"></h1>
+            <p id="phase1Instruction">Recon Phase: Identify the encounter displayed above.</p>
+            <button id="startEncounterButton">Start Encounter</button>
+            <br />
+            <button id="penaltyButton">Misidentified Encounter</button>
+            <button id="cancelPenaltyButton">Cancel Penalty</button>
+          </div>
+          <div id="phase2" class="phase" style="display:none;">
+            <p id="phase2Instruction">Encounter Phase in progress. Timer is counting down.</p>
+            <button id="completeEncounterButton">Complete Encounter</button>
+          </div>
+          <!-- New Round Button -->
+          <button id="newRoundButton" style="display:none;">New Round</button>
+        </div>
+      </div>
+    </div>
+    <!-- Local Storage Modal -->
+    <div id="localStorageModal" class="modal">
+      <div class="modal-content">
+        <span class="modal-close" id="closeLocalStorageModal">&times;</span>
+        <h2 id="localStorageModalTitle">Manage Selections</h2>
+        <!-- For use mode, show two sections: User & Default -->
+        <div id="userSelectionsSection">
+          <h3>User Selections</h3>
+          <button id="uploadSelectionButton">Upload Selection</button>
+          <input type="file" id="uploadFileInput" style="display:none;" accept="application/json" />
+          <div id="userLocalStorageList"></div>
+        </div>
+        <div id="defaultSelectionsSection" style="display:none;">
+          <h3>Selection Preset</h3>
+          <div id="defaultLocalStorageList"></div>
+        </div>
+        <!-- Manage Buttons (for manage mode) -->
+        <div id="localStorageManageButtons">
+          <button id="renameSelectionButton">Rename</button>
+          <button id="deleteSelectionButton">Delete</button>
+          <button id="exportSelectionButton">Export as JSON</button>
+        </div>
+        <!-- Use Selection Buttons (shown in preset mode) -->
+        <div id="localStorageUseButtons" style="display:none;">
+          <button id="useSelectionButton">Use Selection</button>
+        </div>
+      </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>

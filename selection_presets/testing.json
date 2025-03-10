@@ -1,0 +1,45 @@
+{
+  "name": "Selection_2025-03-10T07:24:22.967Z",
+  "data": [
+    {
+      "name": "AMBUSH!",
+      "type": "event"
+    },
+    {
+      "name": "A BOO-BOO",
+      "type": "event"
+    },
+    {
+      "name": "CONFUSION",
+      "type": "event"
+    },
+    {
+      "name": "DUNGEON ERROR IN YOUR FAVOR",
+      "type": "event"
+    },
+    {
+      "name": "GIMME A HAND!",
+      "type": "event"
+    },
+    {
+      "name": "LOCKED DOOR!",
+      "type": "event"
+    },
+    {
+      "name": "YET MORE SPIKES!",
+      "type": "event"
+    },
+    {
+      "name": "SUDDEN ILLNESS",
+      "type": "event"
+    },
+    {
+      "name": "TRAP DOOR",
+      "type": "event"
+    },
+    {
+      "name": "AN UNGODLY AMOUNT OF PORCUPINES",
+      "type": "event"
+    }
+  ]
+}
